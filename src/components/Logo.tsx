@@ -8,6 +8,6 @@ export const Logo = ({ className }: { className?: string }) => (
         <path d="M14 7h6v6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
-    <span className="text-lg font-bold tracking-tight">SIPlan</span>
+    <span className="text-lg font-bold tracking-tight">Investment Planning</span>
   </div>
 );
