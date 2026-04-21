@@ -68,8 +68,8 @@ const HeroCard = () => (
     <div className="relative rounded-2xl border border-border bg-card p-6 shadow-elevated">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Goal</p>
-          <p className="mt-1 text-lg font-semibold">Buy first car 🚗</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Investment</p>
+          <p className="mt-1 text-lg font-semibold">Mutual Funds SIP 📈</p>
         </div>
         <span className="rounded-full bg-secondary-soft px-2.5 py-1 text-xs font-semibold text-secondary">On track</span>
       </div>
