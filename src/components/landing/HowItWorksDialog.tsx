@@ -16,7 +16,7 @@ export const HowItWorksDialog = ({ children }: HowItWorksDialogProps) => {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl">How SIPlan works</DialogTitle>
+          <DialogTitle className="text-2xl">How Investment Planning works</DialogTitle>
           <DialogDescription>
             Four simple steps from your dream goal to a monthly plan you can actually follow.
           </DialogDescription>

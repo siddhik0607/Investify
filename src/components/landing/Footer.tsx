@@ -5,7 +5,7 @@ export const Footer = () => (
     <div className="container flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
       <Logo />
       <p className="text-xs text-muted-foreground">
-        © {new Date().getFullYear()} SIPlan. Plan with confidence.
+        © {new Date().getFullYear()} Investment Planning. Plan with confidence.
       </p>
     </div>
   </footer>
