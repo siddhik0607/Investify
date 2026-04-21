@@ -127,3 +127,17 @@
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
   .text-balance    { text-wrap: balance; }
 }
+
+/* Brand orange used for the ICICI-style sign-in flow */
+@layer base {
+  :root {
+    --brand-orange: 18 94% 50%;          /* #F25C19 */
+    --brand-orange-foreground: 0 0% 100%;
+  }
+}
+@layer utilities {
+  .bg-brand-orange { background-color: hsl(var(--brand-orange)); }
+  .text-brand-orange { color: hsl(var(--brand-orange)); }
+  .border-brand-orange { border-color: hsl(var(--brand-orange)); }
+  .ring-brand-orange { --tw-ring-color: hsl(var(--brand-orange)); }
+}
