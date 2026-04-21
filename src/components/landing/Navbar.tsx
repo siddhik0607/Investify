@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { Link } from "react-router-dom";
 
 export const Navbar = () => {
   return (
@@ -12,9 +13,11 @@ export const Navbar = () => {
           <a href="#faq" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">FAQ</a>
         </nav>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Sign in</Button>
-          <Button size="sm" className="bg-gradient-primary shadow-elevated hover:opacity-95">
-            Get started
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link to="/signin">Sign in</Link>
+          </Button>
+          <Button asChild size="sm" className="bg-gradient-primary shadow-elevated hover:opacity-95">
+            <Link to="/signin">Get started</Link>
           </Button>
         </div>
       </div>

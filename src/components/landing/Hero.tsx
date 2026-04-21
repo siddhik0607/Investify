@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import { HowItWorksDialog } from "@/components/landing/HowItWorksDialog";
 
 export const Hero = () => {
   return (
@@ -26,13 +28,17 @@ export const Hero = () => {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" className="bg-gradient-primary shadow-elevated transition-transform hover:scale-[1.02] hover:opacity-95">
-              Start planning free
-              <ArrowRight className="ml-1 h-4 w-4" />
+            <Button asChild size="lg" className="bg-gradient-primary shadow-elevated transition-transform hover:scale-[1.02] hover:opacity-95">
+              <Link to="/new-goal">
+                Start planning free
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline">
-              See how it works
-            </Button>
+            <HowItWorksDialog>
+              <Button size="lg" variant="outline">
+                See how it works
+              </Button>
+            </HowItWorksDialog>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
