@@ -1,261 +1,265 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Logo } from "@/components/Logo";
-import { ArrowLeft, Star, Briefcase, CreditCard, HeartPulse, Phone, ChevronDown, BadgeCheck, MessageCircle, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bell, MessageCircle, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
-    isFinite(n) ? n : 0,
-  );
-
-/** SIP future value: FV = P × [((1+r)^n − 1)/r] × (1+r) */
-function calcMonthlySIP(target: number, years: number, annualRatePct: number) {
-  const n = Math.max(1, Math.round(years * 12));
-  const r = annualRatePct / 100 / 12;
-  if (r === 0) return target / n;
-  const factor = ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
-  return target / factor;
-}
+import { buildGrowthSeries, calcMonthlySIP, formatInr } from "@/lib/finance";
+import { supabase } from "@/lib/supabase";
 
 const NewGoal = () => {
-  const [name, setName] = useState("");
+  const navigate = useNavigate();
+  const [goalName, setGoalName] = useState("Dream Home");
+  const [targetAmount, setTargetAmount] = useState(800000);
+  const [years, setYears] = useState(4);
+  const [annualReturn, setAnnualReturn] = useState(12);
+  const [name, setName] = useState(() => localStorage.getItem("user_name") || "");
+  const [email, setEmail] = useState(() => localStorage.getItem("user_email") || "");
   const [mobile, setMobile] = useState("");
   const [whatsApp, setWhatsApp] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  // Static showcase numbers (matches the Policybazaar-style hero)
-  const target = 10000000; // ₹1 Crore
-  const years = 11; // 2015 → 2026
-  const rate = 12;
-  const monthly = useMemo(() => calcMonthlySIP(target, years, rate), []);
+  const monthlySip = useMemo(
+    () => calcMonthlySIP(targetAmount, years, annualReturn),
+    [annualReturn, targetAmount, years],
+  );
+  const series = useMemo(
+    () => buildGrowthSeries(monthlySip, years, annualReturn),
+    [annualReturn, monthlySip, years],
+  );
+  const totalInvested = monthlySip * years * 12;
+  const estimatedGrowth = Math.max(0, targetAmount - totalInvested);
+  const chartMax = Math.max(...series.map((item) => item.value), totalInvested, 1);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!goalName.trim()) {
+      toast({ title: "Please enter a goal name", variant: "destructive" });
+      return;
+    }
+
     if (!name.trim()) {
       toast({ title: "Please enter your name", variant: "destructive" });
       return;
     }
+
+    if (!email.trim()) {
+      toast({ title: "Please enter your email", variant: "destructive" });
+      return;
+    }
+
     if (!/^\+?\d{10,13}$/.test(mobile.replace(/\s/g, ""))) {
       toast({ title: "Please enter a valid mobile number", variant: "destructive" });
       return;
     }
-    toast({
-      title: "Plans on the way ✨",
-      description: `We'll show plans starting at ${fmt(1000)}/month — target ${fmt(target)}.`,
-    });
+
+    setIsSubmitting(true);
+
+    const planData = {
+      userName: name,
+      userEmail: email,
+      selectedGoal: goalName,
+      adjustedTarget: targetAmount,
+      targetYears: years,
+      expectedReturn: annualReturn,
+      income: 0, // Not captured on this page, but needed for planData structure
+      lifestyle: "balanced",
+      recommendedSip: monthlySip
+    };
+
+    try {
+      const { error } = await supabase
+        .from("investment_plans")
+        .insert([
+          {
+            full_name: name,
+            email: email,
+            goal_name: goalName,
+            target_amount: targetAmount,
+            target_years: years,
+            expected_return: annualReturn,
+            recommended_sip: monthlySip,
+          },
+        ]);
+
+      if (error) {
+        console.warn("Supabase save failed, but proceeding to show plan:", error.message);
+      } else {
+        toast({ title: "Plan saved successfully!" });
+      }
+    } catch (err: any) {
+      console.error("Error saving plan:", err);
+    } finally {
+      setIsSubmitting(false);
+      navigate("/sip-plan-result", { state: { planData } });
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(220_15%_8%)] text-white">
-      {/* Top bar */}
-      <header className="border-b border-white/10">
+    <div className="min-h-screen bg-gradient-soft">
+      <header className="border-b border-border/60 bg-background/80 backdrop-blur-md">
         <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="inline-flex items-center gap-1 text-sm text-white/70 hover:text-white">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <Logo className="text-white [&_span]:text-white" />
-          </div>
-          <a href="tel:18001234567" className="inline-flex items-center gap-2 text-sm font-semibold text-[hsl(199_98%_60%)]">
-            <Phone className="h-4 w-4" />
-            Talk to Expert
-          </a>
+          <Logo />
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Back to home
+          </Link>
         </div>
       </header>
 
-      <main className="container px-4 py-8 lg:py-14">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
-          {/* LEFT: Hero + chart */}
-          <section>
-            <h1 className="text-balance text-4xl font-bold leading-tight sm:text-5xl">
-              Get returns upto{" "}
-              <span className="text-[hsl(199_98%_60%)]">₹1 Crore<sup className="text-sm">*</sup></span>
-              <br />
-              <span className="text-2xl font-medium text-white/85 sm:text-3xl">
-                on investment of <span className="text-[hsl(199_98%_60%)]">₹10K/month</span>
-              </span>
+      <main className="container px-4 py-8 lg:py-12">
+        {name && (
+          <div className="mb-10 text-center animate-fade-in">
+            <h2 className="text-3xl font-extrabold tracking-tight text-primary sm:text-4xl">
+              Hello {name}, welcome to Investify
+            </h2>
+            <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-primary/20" />
+          </div>
+        )}
+
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.95fr]">
+          <section className="rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10">
+            <h1 className="text-balance text-4xl font-bold sm:text-5xl">
+              Build your investment plan with the same colors as the rest of Investify.
             </h1>
 
-            {/* Bullets */}
-            <ul className="mt-8 space-y-4 text-base">
-              <Bullet icon={<Star className="h-4 w-4" />}>One stop destination for your investment needs</Bullet>
-              <Bullet icon={<Briefcase className="h-4 w-4" />}>Complete support by dedicated financial advisor</Bullet>
-              <Bullet icon={<CreditCard className="h-4 w-4" />}>Option to diversify your portfolio with 150+ fund options</Bullet>
-              <Bullet icon={<HeartPulse className="h-4 w-4" />} accent>Inbuilt life cover</Bullet>
-            </ul>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <StatCard label="Monthly SIP" value={formatInr(monthlySip)} accent />
+              <StatCard label="Total Invested" value={formatInr(totalInvested)} />
+              <StatCard label="Estimated Growth" value={formatInr(estimatedGrowth)} />
+            </div>
 
-            {/* Growth chart (SENSEX-style) */}
-            <div className="relative mt-10 rounded-xl bg-[hsl(220_15%_10%)] p-4">
-              <svg viewBox="0 0 600 220" className="h-56 w-full">
-                <defs>
-                  <linearGradient id="grow" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(160 84% 45%)" stopOpacity="0.55" />
-                    <stop offset="100%" stopColor="hsl(160 84% 45%)" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                {/* jagged growth path */}
-                <path
-                  d="M0,180 L20,178 L40,182 L60,170 L80,176 L100,165 L120,172 L140,158 L160,168 L180,148 L200,160 L220,140 L240,150 L260,128 L280,142 L300,118 L320,130 L340,108 L360,118 L380,90 L400,104 L420,82 L440,94 L460,68 L480,82 L500,52 L520,68 L540,40 L560,55 L580,28 L600,22 L600,220 L0,220 Z"
-                  fill="url(#grow)"
-                />
-                <path
-                  d="M0,180 L20,178 L40,182 L60,170 L80,176 L100,165 L120,172 L140,158 L160,168 L180,148 L200,160 L220,140 L240,150 L260,128 L280,142 L300,118 L320,130 L340,108 L360,118 L380,90 L400,104 L420,82 L440,94 L460,68 L480,82 L500,52 L520,68 L540,40 L560,55 L580,28 L600,22"
-                  stroke="hsl(160 84% 50%)"
-                  strokeWidth="2"
-                  fill="none"
-                />
-                {/* End marker */}
-                <circle cx="600" cy="22" r="5" fill="hsl(160 84% 50%)" />
-              </svg>
-
-              {/* Start label */}
-              <div className="absolute bottom-16 left-2 rounded bg-[hsl(220_15%_14%)] px-2.5 py-1 text-xs">
-                <div className="font-semibold">21,140</div>
-                <div className="text-white/60">2015</div>
-              </div>
-              {/* End label */}
-              <div className="absolute right-3 top-3 rounded bg-[hsl(220_15%_14%)] px-2.5 py-1 text-right text-xs">
-                <div className="font-semibold">80,015</div>
-                <div className="text-white/60">2026</div>
-              </div>
-
-              <div className="mt-2 flex flex-col items-center">
-                <span className="rounded-full bg-secondary px-4 py-1.5 text-xs font-semibold text-secondary-foreground">
-                  Market never stops growing
+            <div className="mt-8 rounded-2xl border border-border bg-background p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-primary">Growth Preview</p>
+                  <h2 className="mt-2 text-2xl font-semibold">Invested vs projected value</h2>
+                </div>
+                <span className="rounded-full bg-secondary-soft px-3 py-1 text-xs font-semibold text-secondary">
+                  {years} year plan
                 </span>
-                <p className="mt-2 text-xs text-white/70">3x returns in the last 10 Years SENSEX data</p>
+              </div>
+
+              <div className="mt-6 space-y-5">
+                {series.map((item) => (
+                  <div key={item.year}>
+                    <div className="mb-2 flex items-center justify-between gap-4 text-sm">
+                      <span className="font-medium text-foreground">Year {item.year}</span>
+                      <span className="text-muted-foreground">
+                        {formatInr(item.invested)} invested · {formatInr(item.value)} projected
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-secondary"
+                          style={{ width: `${Math.max(6, (item.invested / chartMax) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="h-3 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-gradient-growth"
+                          style={{ width: `${Math.max(6, (item.value / chartMax) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <InfoCard
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  title="Simple monthly target"
+                  text={`Aiming for ${formatInr(targetAmount)} over ${years} years keeps your plan clear and trackable.`}
+                />
+                <InfoCard
+                  icon={<TrendingUp className="h-4 w-4" />}
+                  title="Expected return input"
+                  text={`At ${annualReturn}% expected return, your plan is currently targeting ${formatInr(estimatedGrowth)} in growth.`}
+                />
               </div>
             </div>
           </section>
 
-          {/* RIGHT: Form + Ad */}
           <aside className="space-y-6">
-            <form
-              onSubmit={handleSubmit}
-              className="rounded-2xl border border-white/10 bg-[hsl(220_15%_10%)] p-6 shadow-elevated"
-            >
-              <p className="text-xl font-bold leading-tight">Explore plans starting from just</p>
-              <p className="text-2xl font-extrabold text-[hsl(160_84%_50%)]">
-                ₹1,000<span className="text-sm font-medium text-white/70">/month</span>
+            <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-card p-6 shadow-elevated">
+              <p className="text-sm font-semibold uppercase tracking-wider text-primary">Plan Builder</p>
+              <h2 className="mt-2 text-2xl font-bold">Create your SIP plan</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enter your goal details and user information to see the monthly investment needed.
               </p>
 
-              {/* Name */}
-              <div className="mt-6">
-                <FloatingField
-                  label="Your Name"
-                  value={name}
-                  onChange={setName}
-                  placeholder="Your Name"
-                  invalid={!name.trim()}
-                  errorText="Please enter your name"
+              <div className="mt-6 grid gap-4">
+                <Field label="Goal Name" value={goalName} onChange={setGoalName} placeholder="Dream Home" />
+                <NumberField
+                  label="Target Amount"
+                  value={targetAmount}
+                  onChange={setTargetAmount}
+                  placeholder="800000"
                 />
-              </div>
-
-              {/* Mobile */}
-              <div className="mt-4">
-                <label className="mb-1 block text-xs font-semibold text-[hsl(199_98%_60%)]">Mobile Number</label>
-                <div
-                  className={`flex items-center gap-2 rounded-md border bg-transparent px-3 py-2.5 ${
-                    mobile && !/^\+?\d{10,13}$/.test(mobile.replace(/\s/g, "")) ? "border-destructive" : "border-[hsl(199_98%_60%)]"
-                  }`}
-                >
-                  <button type="button" className="inline-flex items-center gap-1 text-sm text-white/80">
-                    India <ChevronDown className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="text-white/40">|</span>
-                  <span className="text-sm text-white/70">+ 91</span>
-                  <input
-                    type="tel"
-                    value={mobile}
-                    onChange={(e) => setMobile(e.target.value)}
-                    placeholder="Mobile Number"
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-white/40"
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <NumberField label="Years" value={years} onChange={setYears} placeholder="4" />
+                  <NumberField
+                    label="Return % p.a."
+                    value={annualReturn}
+                    onChange={setAnnualReturn}
+                    placeholder="12"
+                    step="0.1"
                   />
                 </div>
-                {!mobile && (
-                  <p className="mt-1 text-xs text-destructive">• Please enter your mobile number</p>
-                )}
+                <Field label="Your Name" value={name} onChange={setName} placeholder="Your name" />
+                <Field label="Email Address" value={email} onChange={setEmail} placeholder="your@email.com" />
+                <Field label="Mobile Number" value={mobile} onChange={setMobile} placeholder="+91 98765 43210" />
               </div>
 
-              <Button
-                type="submit"
-                className="mt-6 h-12 w-full rounded-md bg-[hsl(199_98%_55%)] text-base font-semibold text-white hover:bg-[hsl(199_98%_50%)]"
+              <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={whatsApp}
+                  onChange={(e) => setWhatsApp(e.target.checked)}
+                  className="h-4 w-4 rounded accent-[hsl(var(--primary))]"
+                />
+                <MessageCircle className="h-4 w-4 text-secondary" />
+                Get plan updates on WhatsApp
+              </label>
+
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="mt-6 h-12 w-full bg-gradient-primary text-base font-semibold hover:opacity-95"
               >
-                View Plans
+                {isSubmitting ? "Generating Plan..." : "Show My Investment Plan"}
               </Button>
 
-              <div className="mt-4 space-y-2 text-xs text-white/70">
-                <div className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-[hsl(199_98%_60%)]" />
-                  Only our Certified experts will assist you
-                </div>
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={whatsApp}
-                    onChange={(e) => setWhatsApp(e.target.checked)}
-                    className="h-4 w-4 rounded accent-[hsl(199_98%_55%)]"
-                  />
-                  <MessageCircle className="h-4 w-4 text-secondary" />
-                  Get updates on WhatsApp
-                </label>
+              <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                <BadgeCheck className="h-4 w-4 text-primary" />
+                Your planning inputs stay aligned with the website theme and layout.
               </div>
-
-              <p className="mt-4 text-[11px] leading-relaxed text-white/60">
-                By clicking on view plans, you agreed to our{" "}
-                <a className="text-[hsl(199_98%_60%)] underline" href="#">Privacy policy</a>,{" "}
-                <a className="text-[hsl(199_98%_60%)] underline" href="#">Terms of Use</a> &{" "}
-                <sup>+</sup>Disclaimer
-              </p>
             </form>
 
-            {/* Mutual Funds Advertisement */}
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[hsl(243_75%_25%)] to-[hsl(243_75%_15%)] p-6 shadow-elevated">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[hsl(160_84%_55%)]">
-                <Star className="h-3.5 w-3.5" /> Sponsored · Mutual Funds
+            <div className="rounded-3xl border border-border bg-background p-6 shadow-card">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary">
+                <Bell className="h-4 w-4" />
+                Suggested Next Step
               </div>
-              <h3 className="mt-2 text-xl font-bold">Top-rated SIPs for 2026</h3>
-              <p className="mt-1 text-sm text-white/75">
-                Hand-picked equity & hybrid funds with consistent 5-yr returns. Start investing from ₹500/month.
+              <p className="mt-3 text-sm text-muted-foreground">
+                If this monthly SIP feels high, open Helpful Nudges to compare longer durations, better return assumptions, and easier starting points.
               </p>
-
-              <div className="mt-4 space-y-3">
-                <FundRow name="Bluechip Equity Fund" cagr="14.8%" risk="Moderate" />
-                <FundRow name="Balanced Advantage Fund" cagr="12.3%" risk="Low" />
-                <FundRow name="Smallcap Growth Fund" cagr="18.6%" risk="High" />
-              </div>
-
-              <Button className="mt-5 w-full bg-secondary text-secondary-foreground hover:opacity-95">
-                Explore Mutual Funds
-              </Button>
-              <p className="mt-2 text-[10px] text-white/50">
-                Mutual fund investments are subject to market risks. Read all scheme related documents carefully.
-              </p>
-            </div>
-
-            {/* Suggested SIP plan badge */}
-            <div className="rounded-2xl border border-white/10 bg-[hsl(220_15%_10%)] p-5">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/60">
-                <ShieldCheck className="h-3.5 w-3.5 text-[hsl(160_84%_50%)]" /> Suggested plan
-              </div>
-              <p className="mt-2 text-sm text-white/80">
-                To reach <span className="font-semibold text-white">{fmt(target)}</span> in {years} years @ {rate}% p.a.
-              </p>
-              <p className="mt-1 text-2xl font-bold text-[hsl(160_84%_55%)]">{fmt(monthly)}/month</p>
-              <div className="mt-3">
-                <div className="mb-1 flex justify-between text-xs text-white/60">
-                  <span>Goal progress</span>
-                  <span>32%</span>
+              <div className="mt-4">
+                <div className="mb-2 flex justify-between text-xs text-muted-foreground">
+                  <span>Confidence tracker</span>
+                  <span>72%</span>
                 </div>
-                <Progress value={32} className="h-2 bg-white/10" />
+                <Progress value={72} className="h-2" />
               </div>
-              <div className="mt-3 inline-flex items-center gap-1 text-xs text-secondary">
-                <TrendingUp className="h-3.5 w-3.5" /> Avg. return +12.4% p.a.
-              </div>
+              <Button asChild variant="outline" className="mt-5 w-full">
+                <Link to="/helpful-nudges">Open Helpful Nudges</Link>
+              </Button>
             </div>
           </aside>
         </div>
@@ -264,54 +268,85 @@ const NewGoal = () => {
   );
 };
 
-const Bullet = ({ icon, children, accent = false }: { icon: React.ReactNode; children: React.ReactNode; accent?: boolean }) => (
-  <li className="flex items-center gap-3">
-    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[hsl(199_98%_60%/0.15)] text-[hsl(199_98%_60%)]">
-      {icon}
-    </span>
-    <span className={accent ? "font-semibold text-[hsl(160_84%_55%)]" : "text-white/90"}>{children}</span>
-  </li>
-);
-
-const FloatingField = ({
+const Field = ({
   label,
   value,
   onChange,
   placeholder,
-  invalid,
-  errorText,
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   placeholder: string;
-  invalid?: boolean;
-  errorText?: string;
 }) => (
-  <div>
-    <label className="mb-1 block text-xs font-semibold text-[hsl(199_98%_60%)]">{label}</label>
+  <label className="block">
+    <span className="mb-2 block text-sm font-medium text-foreground">{label}</span>
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`h-11 border-[hsl(199_98%_60%)] bg-transparent text-white placeholder:text-white/40 focus-visible:ring-0 ${
-        invalid ? "border-destructive" : ""
-      }`}
+      className="h-12 bg-background"
     />
-    {invalid && errorText && <p className="mt-1 text-xs text-destructive">• {errorText}</p>}
+  </label>
+);
+
+const NumberField = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  step = "1",
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  placeholder: string;
+  step?: string;
+}) => (
+  <label className="block">
+    <span className="mb-2 block text-sm font-medium text-foreground">{label}</span>
+    <Input
+      type="number"
+      min="0"
+      step={step}
+      value={Number.isFinite(value) ? value : ""}
+      onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))}
+      placeholder={placeholder}
+      className="h-12 bg-background"
+    />
+  </label>
+);
+
+const StatCard = ({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) => (
+  <div className={`rounded-2xl border p-5 ${accent ? "border-primary/30 bg-primary-soft" : "border-border bg-background"}`}>
+    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+    <p className={`mt-3 text-2xl font-bold ${accent ? "text-primary" : "text-foreground"}`}>{value}</p>
   </div>
 );
 
-const FundRow = ({ name, cagr, risk }: { name: string; cagr: string; risk: string }) => (
-  <div className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2.5">
-    <div>
-      <p className="text-sm font-semibold">{name}</p>
-      <p className="text-[11px] text-white/60">Risk: {risk}</p>
+const InfoCard = ({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) => (
+  <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+    <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">{icon}</span>
+      {title}
     </div>
-    <div className="text-right">
-      <p className="text-sm font-bold text-[hsl(160_84%_55%)]">{cagr}</p>
-      <p className="text-[10px] text-white/60">5Y CAGR</p>
-    </div>
+    <p className="mt-3 text-sm text-muted-foreground">{text}</p>
   </div>
 );
 

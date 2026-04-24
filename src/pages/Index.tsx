@@ -1,19 +1,15 @@
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
-import { Features } from "@/components/landing/Features";
-import { HowItWorks } from "@/components/landing/HowItWorks";
-import { CTA } from "@/components/landing/CTA";
+import { PlannerDashboard } from "@/components/landing/PlannerDashboard";
 import { Footer } from "@/components/landing/Footer";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main>
+      <main className="space-y-24 pb-24">
         <Hero />
-        <Features />
-        <HowItWorks />
-        <CTA />
+        <PlannerDashboard />
       </main>
       <Footer />
     </div>

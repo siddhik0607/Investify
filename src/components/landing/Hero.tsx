@@ -10,32 +10,27 @@ export const Hero = () => {
       <div className="pointer-events-none absolute -top-32 -right-20 h-[420px] w-[420px] rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -left-20 h-[420px] w-[420px] rounded-full bg-secondary/10 blur-3xl" />
 
-      <div className="container relative grid gap-12 px-4 py-16 md:py-24 lg:grid-cols-2 lg:gap-8 lg:py-32">
+      <div className="container relative grid gap-12 px-6 py-16 md:py-24 lg:grid-cols-2 lg:gap-12 lg:py-32">
         <div className="flex flex-col justify-center animate-fade-in-up">
-          <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            Built for first-time investors
-          </div>
-
-          <h1 className="text-balance text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="text-balance text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your goals into a{" "}
             <span className="bg-gradient-growth bg-clip-text text-transparent">monthly plan</span>{" "}
             you can actually follow.
           </h1>
 
-          <p className="mt-6 max-w-xl text-balance text-base text-muted-foreground sm:text-lg">
-            A car, a home, a dream trip — tell SIPlan what you want and when. We'll calculate the exact monthly SIP and show you how your money grows, in plain language.
+          <p className="mt-6 max-w-xl text-balance text-base text-muted-foreground sm:text-lg leading-relaxed">
+            A car, a home, a dream trip — tell Investify what you want and when. We'll calculate the exact monthly SIP and show you how your money grows, in plain language.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="bg-gradient-primary shadow-elevated transition-transform hover:scale-[1.02] hover:opacity-95">
+          <div className="mt-8 flex flex-col gap-3.5 sm:flex-row">
+            <Button asChild size="lg" className="h-12 px-7 bg-gradient-primary shadow-elevated transition-transform hover:scale-[1.01] hover:opacity-95 text-base font-semibold">
               <Link to="/new-goal">
                 Start planning free
-                <ArrowRight className="ml-1 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4.5 w-4.5" />
               </Link>
             </Button>
             <HowItWorksDialog>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="h-12 px-7 text-base font-semibold">
                 See how it works
               </Button>
             </HowItWorksDialog>
@@ -125,8 +120,8 @@ const HeroCard = () => (
 );
 
 const Stat = ({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) => (
-  <div className={`rounded-xl border p-3 ${highlight ? "border-primary/30 bg-primary-soft" : "border-border bg-background"}`}>
-    <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-    <p className={`mt-1 text-base font-semibold ${highlight ? "text-primary" : "text-foreground"}`}>{value}</p>
+  <div className={`rounded-xl border p-2.5 ${highlight ? "border-primary/30 bg-primary-soft" : "border-border bg-background"}`}>
+    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+    <p className={`mt-0.5 text-sm font-semibold ${highlight ? "text-primary" : "text-foreground"}`}>{value}</p>
   </div>
 );
