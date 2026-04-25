@@ -40,7 +40,7 @@ export async function registerUser(email: string, password: string, username: st
       .insert([
         { 
           email: email, 
-          username: username,
+          full_name: username, // Changed from username to full_name
           password: hashedPassword, 
           phone: phone,
           created_at: new Date().toISOString() 
@@ -89,7 +89,7 @@ export async function loginUser(email: string, password: string) {
     // 1. Fetch the hashed password from the database
     const { data, error } = await supabase
       .from('user_credentials')
-      .select('password, username')
+      .select('password, full_name') // Changed from username to full_name
       .eq('email', email)
       .single();
 
@@ -112,7 +112,7 @@ export async function loginUser(email: string, password: string) {
       return { 
         success: true, 
         message: 'Login successful',
-        username: data.username 
+        username: data.full_name // Map full_name back to username for the UI
       };
     } else {
       return { success: false, message: 'Invalid password' };

@@ -1,9 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, TrendingUp, Hand } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HowItWorksDialog } from "@/components/landing/HowItWorksDialog";
+import { useEffect, useState } from "react";
 
 export const Hero = () => {
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const name = localStorage.getItem("user_name");
+    if (name) setUserName(name);
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-gradient-soft">
       {/* Decorative blobs */}
@@ -12,6 +20,15 @@ export const Hero = () => {
 
       <div className="container relative grid gap-12 px-6 py-16 md:py-24 lg:grid-cols-2 lg:gap-12 lg:py-32">
         <div className="flex flex-col justify-center animate-fade-in-up">
+          {userName && (
+            <div className="mb-6 flex items-center gap-2 rounded-full bg-primary/5 border border-primary/10 px-4 py-1.5 w-fit">
+              <Hand className="h-4 w-4 text-primary animate-bounce" />
+              <span className="text-sm font-semibold text-primary">
+                Welcome back, {userName}! Let's reach your next goal.
+              </span>
+            </div>
+          )}
+          
           <h1 className="text-balance text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             Turn your goals into a{" "}
             <span className="bg-gradient-growth bg-clip-text text-transparent">monthly plan</span>{" "}
