@@ -50,13 +50,6 @@ Check out the live website: [investify-pro.vercel.app](https://investify-pro.ver
 Investify prioritizes your security. We never store plain-text passwords. All credentials are encrypted using one-way cryptographic hashing before reaching our database, ensuring that even in the database, your actual password remains invisible.
 
 ---
-
-## 📞 Contact & Support
-
-Have questions or suggestions? Reach out to us:
-- **Email**: [kasabesiddhi@gmail.com](mailto:kasabesiddhi@gmail.com)
-- **Website**: [Investify](https://investify-pro.vercel.app/)
-
 ---
 
 *Plan your future today. Start investing with Investify.*
