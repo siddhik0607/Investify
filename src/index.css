@@ -53,7 +53,6 @@
     --shadow-focus: 0 0 0 4px hsl(243 75% 59% / 0.15);
 
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
     --sidebar-primary: 243 75% 59%;
