@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const featuredGoals = [
   {
@@ -56,7 +57,13 @@ const GoalsPage = () => {
       </header>
 
       <main className="container px-4 py-12 md:py-16">
-        <section className="grid gap-8 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr] lg:p-10">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          className="grid gap-8 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr] lg:p-10"
+        >
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/80">
               <Sparkles className="h-3.5 w-3.5 text-violet-200" />
@@ -101,9 +108,15 @@ const GoalsPage = () => {
               ))}
             </div>
           </div>
-        </section>
+        </motion.section>
 
-        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.12 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+        >
           {featuredGoals.map((goal) => (
             <article key={goal.title} className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-card backdrop-blur-xl transition-transform hover:-translate-y-1 hover:shadow-elevated">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-violet-200">
@@ -123,7 +136,7 @@ const GoalsPage = () => {
               </Button>
             </article>
           ))}
-        </section>
+        </motion.section>
       </main>
     </div>
   );

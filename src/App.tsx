@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import Lenis from "lenis";
 import { AnimatePresence, motion } from "framer-motion";
@@ -72,8 +72,32 @@ const AnimatedRoutes = () => {
   );
 };
 
+const BackgroundAndScrollEffects = ({
+  enable3d,
+  lenisRef,
+}: {
+  enable3d: boolean;
+  lenisRef: React.MutableRefObject<Lenis | null>;
+}) => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const lenis = lenisRef.current;
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [location.pathname, lenisRef]);
+
+  const enableBackground3d = enable3d && location.pathname !== "/";
+
+  return <PremiumBackground enable3d={enableBackground3d} />;
+};
+
 const App = () => {
   const isMobile = useIsMobile();
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -82,6 +106,7 @@ const App = () => {
       wheelMultiplier: 1,
       touchMultiplier: 1.5,
     });
+    lenisRef.current = lenis;
 
     let raf = 0;
     const loop = (time: number) => {
@@ -93,6 +118,7 @@ const App = () => {
     return () => {
       window.cancelAnimationFrame(raf);
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, []);
 
@@ -120,7 +146,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <PremiumBackground enable3d={!isMobile} />
+            <BackgroundAndScrollEffects enable3d={!isMobile} lenisRef={lenisRef} />
             <AnimatedRoutes />
           </BrowserRouter>
         </TooltipProvider>

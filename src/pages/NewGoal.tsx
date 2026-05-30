@@ -8,6 +8,7 @@ import { ArrowLeft, BadgeCheck, Bell, MessageCircle, ShieldCheck, Sparkles, Tren
 import { useToast } from "@/hooks/use-toast";
 import { buildGrowthSeries, calcMonthlySIP, formatInr } from "@/lib/finance";
 import { supabase } from "@/lib/supabase";
+import { motion } from "framer-motion";
 
 const NewGoal = () => {
   const navigate = useNavigate();
@@ -113,16 +114,28 @@ const NewGoal = () => {
 
       <main className="container px-4 py-8 lg:py-12">
         {name && (
-          <div className="mb-10 text-center animate-fade-in">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.6 }}
+            transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+            className="mb-10 text-center"
+          >
             <h2 className="text-3xl font-extrabold tracking-tight text-primary sm:text-4xl">
               Hello {name}, welcome to Investify
             </h2>
             <div className="mx-auto mt-2 h-1 w-20 rounded-full bg-primary/20" />
-          </div>
+          </motion.div>
         )}
 
         <div className="grid gap-8 lg:grid-cols-[1.15fr_0.95fr]">
-          <section className="rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10">
+          <motion.section
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+            className="rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10"
+          >
             <h1 className="text-balance text-4xl font-bold sm:text-5xl">
               Build your investment plan with the same colors as the rest of Investify.
             </h1>
@@ -184,9 +197,15 @@ const NewGoal = () => {
                 />
               </div>
             </div>
-          </section>
+          </motion.section>
 
-          <aside className="space-y-6">
+          <motion.aside
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+            className="space-y-6"
+          >
             <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-card p-6 shadow-elevated">
               <p className="text-sm font-semibold uppercase tracking-wider text-primary">Plan Builder</p>
               <h2 className="mt-2 text-2xl font-bold">Create your SIP plan</h2>
@@ -261,7 +280,7 @@ const NewGoal = () => {
                 <Link to="/helpful-nudges">Open Helpful Nudges</Link>
               </Button>
             </div>
-          </aside>
+          </motion.aside>
         </div>
       </main>
     </div>

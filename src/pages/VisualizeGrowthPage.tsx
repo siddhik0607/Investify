@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { buildGrowthSeries, calculateFutureValue, formatInr } from "@/lib/finance";
+import { motion } from "framer-motion";
 
 const VisualizeGrowthPage = () => {
   const [monthlyInvestment, setMonthlyInvestment] = useState(12000);
@@ -32,8 +33,20 @@ const VisualizeGrowthPage = () => {
       </header>
 
       <main className="container px-4 py-12 md:py-16">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+            className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
+          >
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
                 <BarChart3 className="h-3.5 w-3.5" />
@@ -49,21 +62,39 @@ const VisualizeGrowthPage = () => {
             <Button asChild className="bg-gradient-primary hover:opacity-95">
               <Link to="/new-goal">Open Start Planning</Link>
             </Button>
-          </div>
+          </motion.div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.08, ease: [0.2, 0.8, 0.2, 1] }}
+            className="mt-8 grid gap-4 md:grid-cols-3"
+          >
             <InputCard label="Monthly Investment" value={monthlyInvestment} onChange={setMonthlyInvestment} />
             <InputCard label="Years" value={years} onChange={setYears} />
             <InputCard label="Return % p.a." value={annualReturn} onChange={setAnnualReturn} step="0.1" />
-          </div>
+          </motion.div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}
+            className="mt-8 grid gap-4 md:grid-cols-3"
+          >
             <SummaryCard label="You invest" value={formatInr(totalInvested)} />
             <SummaryCard label="Projected value" value={formatInr(finalValue)} accent />
             <SummaryCard label="Estimated gain" value={formatInr(Math.max(0, finalValue - totalInvested))} />
-          </div>
+          </motion.div>
 
-          <section className="mt-10 rounded-2xl border border-border bg-background p-6">
+          <motion.section
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.18 }}
+            transition={{ duration: 0.8, delay: 0.12, ease: [0.2, 0.8, 0.2, 1] }}
+            className="mt-10 rounded-2xl border border-border bg-background p-6"
+          >
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <TrendingUp className="h-4 w-4" />
               Growth Comparison Chart
@@ -94,8 +125,8 @@ const VisualizeGrowthPage = () => {
                 </div>
               ))}
             </div>
-          </section>
-        </div>
+          </motion.section>
+        </motion.div>
       </main>
     </div>
   );

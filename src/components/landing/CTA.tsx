@@ -1,11 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export const CTA = () => (
   <section className="py-20 md:py-28">
     <div className="container px-4">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-primary p-10 text-center shadow-elevated sm:p-16">
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true, amount: 0.35 }}
+        transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-primary p-10 text-center shadow-elevated sm:p-16"
+      >
         <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_30%_20%,white,transparent_40%),radial-gradient(circle_at_70%_80%,white,transparent_40%)]" />
         <div className="relative">
           <h2 className="text-balance text-3xl font-bold text-primary-foreground sm:text-4xl">
@@ -21,7 +28,7 @@ export const CTA = () => (
             </Link>
           </Button>
         </div>
-      </div>
+      </motion.div>
     </div>
   </section>
 );

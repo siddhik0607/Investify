@@ -4,6 +4,7 @@ import { Logo } from "@/components/Logo";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Login } from "@/components/auth/Login";
 import { SignUp } from "@/components/auth/SignUp";
+import { motion } from "framer-motion";
 
 const SignIn = () => {
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
@@ -21,7 +22,13 @@ const SignIn = () => {
       </header>
 
       <main className="container px-4 py-10 lg:py-16">
-        <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl md:p-10">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl md:p-10"
+        >
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/80">
             <Sparkles className="h-3.5 w-3.5 text-violet-200" />
             {authMode === "signin" ? "Secure Login" : "Join Investify"}
@@ -56,7 +63,7 @@ const SignIn = () => {
 
             {authMode === "signin" ? <Login /> : <SignUp />}
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

@@ -2,9 +2,10 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
+import type { MotionValue } from "framer-motion";
 
 type HeroCanvasProps = {
-  scrollProgress: number;
+  scrollProgress: number | MotionValue<number>;
   isMobile: boolean;
   theme: "light" | "dark";
 };
@@ -228,13 +229,14 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
     const pop = Math.min(t / 1.35, 1);
     const popEased = easeOutCubic(pop);
     const floatY = Math.sin(t * 0.6) * 0.04;
+    const sp = typeof scrollProgress === "number" ? scrollProgress : scrollProgress.get();
 
     if (rootRef.current) {
       const targetRotX = pointer.y * 0.08;
       const targetRotY = pointer.x * 0.12;
       rootRef.current.rotation.x = THREE.MathUtils.damp(rootRef.current.rotation.x, targetRotX, 6, delta);
       rootRef.current.rotation.y = THREE.MathUtils.damp(rootRef.current.rotation.y, targetRotY, 6, delta);
-      rootRef.current.position.y = THREE.MathUtils.damp(rootRef.current.position.y, floatY - scrollProgress * 0.28, 6, delta);
+      rootRef.current.position.y = THREE.MathUtils.damp(rootRef.current.position.y, floatY - sp * 0.28, 6, delta);
       const baseScale = THREE.MathUtils.lerp(1.1, 1.0, popEased);
       rootRef.current.scale.set(baseScale, baseScale, 1);
     }
@@ -247,9 +249,11 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
     }
 
     const targetCamX = pointer.x * 0.18 + Math.sin(t * 0.12) * 0.08;
-    const targetCamY = pointer.y * 0.12 + Math.sin(t * 0.1) * 0.05;
+    const targetCamY = pointer.y * 0.12 + Math.sin(t * 0.1) * 0.05 + sp * 0.06;
+    const targetCamZ = 3.6 + sp * 0.35;
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetCamX, 3.5, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetCamY, 3.5, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetCamZ, 3.5, delta);
     camera.lookAt(0.2, 0, 0);
 
     if (nodeMeshRef.current) {
@@ -297,7 +301,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
         const s = data.seed[i];
         const dy = Math.sin(t * speed + s) * amp;
         const dx = Math.cos(t * (speed * 0.7) + s) * (amp * 0.6);
-        attr.setXYZ(i, baseX + dx, baseY + dy - scrollProgress * 0.12, baseZ);
+        attr.setXYZ(i, baseX + dx, baseY + dy - sp * 0.12, baseZ);
       }
       attr.needsUpdate = true;
     };

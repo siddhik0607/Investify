@@ -11,7 +11,6 @@ export const Hero = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const isMobile = useIsMobile();
-  const [scrollProgress, setScrollProgress] = useState(0);
   const { resolvedTheme } = useTheme();
   const themeMode = resolvedTheme === "light" ? "light" : "dark";
 
@@ -32,6 +31,14 @@ export const Hero = () => {
 
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -48]);
   const glowY = useTransform(scrollYProgress, [0, 1], [0, -24]);
+  const contentY = useTransform(scrollYProgress, [0, 0.9], [0, -64]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.35]);
+  const headlineY = useTransform(scrollYProgress, [0, 0.75], [0, -18]);
+  const headlineOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.55]);
+  const ctaY = useTransform(scrollYProgress, [0, 0.75], [0, -12]);
+  const ctaOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.6]);
+  const cardsScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+  const cardsY = useTransform(scrollYProgress, [0, 1], [0, -24]);
 
   useEffect(() => {
     const name = localStorage.getItem("user_name")?.trim() || null;
@@ -39,11 +46,6 @@ export const Hero = () => {
     const inferredFromEmail = email ? email.split("@")[0] : null;
     setDisplayName(name || inferredFromEmail || null);
   }, []);
-
-  useEffect(() => {
-    const unsub = scrollYProgress.on("change", (v) => setScrollProgress(v));
-    return () => unsub();
-  }, [scrollYProgress]);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -71,7 +73,7 @@ export const Hero = () => {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <motion.div style={{ y: parallaxY }} className="absolute inset-0">
           <Suspense fallback={null}>
-            <HeroCanvas scrollProgress={scrollProgress} isMobile={isMobile} theme={themeMode} />
+            <HeroCanvas scrollProgress={scrollYProgress} isMobile={isMobile} theme={themeMode} />
           </Suspense>
         </motion.div>
 
@@ -92,27 +94,24 @@ export const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
           className="lg:col-span-7"
+          style={{ y: contentY, opacity: contentOpacity }}
         >
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/30 px-4 py-2 backdrop-blur-xl">
-            <Sparkles className="h-4 w-4 text-violet-200" />
-            <span className="text-sm font-semibold text-foreground">
-              {displayName ? `Hi, ${displayName} — welcome to Investify.` : "Welcome to Investify."}
-            </span>
-          </div>
-
-          <h1 className="text-balance text-4xl font-extrabold leading-[1.04] tracking-tight sm:text-5xl lg:text-6xl">
+          <motion.h1
+            style={{ y: headlineY, opacity: headlineOpacity }}
+            className="text-balance text-4xl font-extrabold leading-[1.04] tracking-tight sm:text-5xl lg:text-6xl"
+          >
             Turn your goals into a{" "}
             <span className="bg-gradient-to-r from-violet-200 via-indigo-200 to-emerald-200 bg-clip-text text-transparent">
               monthly plan
             </span>{" "}
             you can actually follow.
-          </h1>
+          </motion.h1>
 
           <p className="mt-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg">
             A car, a home, a dream trip — tell Investify what you want and when. We'll calculate the exact monthly SIP and show you how your money grows, in plain language.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3.5 sm:flex-row">
+          <motion.div style={{ y: ctaY, opacity: ctaOpacity }} className="mt-8 flex flex-col gap-3.5 sm:flex-row">
             <MagneticButton>
               <Button
                 asChild
@@ -136,7 +135,7 @@ export const Hero = () => {
                 </Button>
               </MagneticButton>
             </HowItWorksDialog>
-          </div>
+          </motion.div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -156,7 +155,7 @@ export const Hero = () => {
           </div>
         </motion.div>
 
-        <div className="relative lg:col-span-5">
+        <motion.div className="relative lg:col-span-5" style={{ y: cardsY, scale: cardsScale }}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -192,7 +191,7 @@ export const Hero = () => {
               </FloatingCard>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -280,7 +279,8 @@ const FloatingCard = ({ children, className }: { children: React.ReactNode; clas
   );
 };
 
-const MagneticButton = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ children }, forwardedRef) => {
+const MagneticButton = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
+  ({ children, className, onPointerMove, onPointerLeave, ...rest }, forwardedRef) => {
   const localRef = useRef<HTMLDivElement | null>(null);
 
   const setRefs = (node: HTMLDivElement | null) => {
@@ -292,8 +292,9 @@ const MagneticButton = forwardRef<HTMLDivElement, { children: React.ReactNode }>
   return (
     <div
       ref={setRefs}
-      className="inline-flex will-change-transform"
+      className={`inline-flex will-change-transform ${className || ""}`}
       onPointerMove={(e) => {
+        onPointerMove?.(e);
         const el = localRef.current;
         if (!el) return;
         const rect = el.getBoundingClientRect();
@@ -301,16 +302,19 @@ const MagneticButton = forwardRef<HTMLDivElement, { children: React.ReactNode }>
         const y = (e.clientY - rect.top) / rect.height - 0.5;
         el.style.transform = `translate3d(${(x * 10).toFixed(2)}px, ${(y * 10).toFixed(2)}px, 0)`;
       }}
-      onPointerLeave={() => {
+      onPointerLeave={(e) => {
+        onPointerLeave?.(e);
         const el = localRef.current;
         if (!el) return;
         el.style.transform = "translate3d(0,0,0)";
       }}
+      {...rest}
     >
       {children}
     </div>
   );
-});
+  },
+);
 MagneticButton.displayName = "MagneticButton";
 
 const GrowthChart = () => {

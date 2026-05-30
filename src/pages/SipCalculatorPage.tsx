@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { calcMonthlySIP, formatInr } from "@/lib/finance";
+import { motion } from "framer-motion";
 
 const SipCalculatorPage = () => {
   const [targetAmount, setTargetAmount] = useState(1500000);
@@ -31,7 +32,13 @@ const SipCalculatorPage = () => {
       </header>
 
       <main className="container px-4 py-12 md:py-16">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:p-10">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:p-10"
+        >
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
             <section>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -103,7 +110,7 @@ const SipCalculatorPage = () => {
               </Button>
             </section>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

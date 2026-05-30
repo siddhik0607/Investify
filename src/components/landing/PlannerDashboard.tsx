@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { buildGrowthSeries, calcMonthlySIP, formatInr } from "@/lib/finance";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { motion, useInView } from "framer-motion";
 
 const lifestyleAdjustments: Record<string, number> = {
   balanced: 1,
@@ -176,6 +177,9 @@ export const PlannerDashboard = () => {
     () => buildGrowthSeries(recommendedSip, targetYears, expectedReturn),
     [expectedReturn, recommendedSip, targetYears],
   );
+  const maxGrowthValue = growthSeries[growthSeries.length - 1]?.value || 1;
+  const chartRef = useRef<HTMLDivElement | null>(null);
+  const chartInView = useInView(chartRef, { once: true, amount: 0.35 });
   const totalInvested = recommendedSip * targetYears * 12;
   const estimatedReturns = Math.max(0, adjustedTarget - totalInvested);
   const safeRatio = Math.min(100, Math.round((income * 0.35 > 0 ? recommendedSip / (income * 0.35) : 0) * 100));
@@ -317,16 +321,28 @@ export const PlannerDashboard = () => {
         <div className="grid gap-8 xl:grid-cols-2">
           <CardShell title="2. Smart Plan Calculation" subtitle="We calculate the exact SIP you need using the SIP formula.">
             <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-              <div className="space-y-3 rounded-2xl border border-border bg-background p-5">
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.22 }}
+                transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+                className="space-y-3 rounded-2xl border border-border bg-background p-5"
+              >
                 <DataRow label="Target Amount" value={formatInr(adjustedTarget)} />
                 <DataRow label="Target Year" value={`${targetYears} Years`} />
                 <DataRow label="Expected Return" value={`${expectedReturn}% p.a.`} />
                 <DataRow label="Monthly Income" value={formatInr(income)} />
-              </div>
-              <div className="rounded-2xl border border-secondary/25 bg-secondary-soft p-6">
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 14, scale: 0.99 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.22 }}
+                transition={{ duration: 0.8, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+                className="rounded-2xl border border-secondary/25 bg-secondary-soft p-6"
+              >
                 <p className="text-xs font-semibold text-primary">Your Recommended SIP</p>
                 <p className="mt-3 text-4xl font-bold text-foreground">
-                  {formatInr(recommendedSip)}
+                  <CountUpNumber value={recommendedSip} format={formatInr} />
                   <span className="ml-1.5 text-base font-medium text-muted-foreground">/mo</span>
                 </p>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">Comfortable investment based on your setup.</p>
@@ -344,13 +360,20 @@ export const PlannerDashboard = () => {
                 <Button asChild variant="outline" className="mt-6 h-10 w-full bg-card text-sm font-semibold">
                   <Link to="/sip-calculator">Open calculator</Link>
                 </Button>
-              </div>
+              </motion.div>
             </div>
           </CardShell>
 
           <CardShell title="3. Growth Visualization" subtitle="Visualize your wealth growth over time.">
             <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-              <div className="rounded-2xl border border-border bg-background p-6">
+              <motion.div
+                ref={chartRef}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+                className="rounded-2xl border border-border bg-background p-6"
+              >
                 <div className="mb-5 flex flex-wrap items-center gap-4 text-[11px] font-medium text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-primary" />
@@ -364,13 +387,17 @@ export const PlannerDashboard = () => {
                 <div className="flex h-48 items-end gap-2 px-1">
                   {growthSeries.map((item, i) => (
                     <div key={item.year} className="group relative flex-1">
-                      <div
-                        className="w-full rounded-t-md bg-primary/20 transition-all group-hover:bg-primary/30"
-                        style={{ height: `${(item.invested / growthSeries[growthSeries.length - 1].value) * 100}%` }}
+                      <motion.div
+                        className="w-full rounded-t-md bg-primary/20 transition-colors group-hover:bg-primary/30"
+                        initial={{ height: 0 }}
+                        animate={{ height: chartInView ? `${(item.invested / maxGrowthValue) * 100}%` : 0 }}
+                        transition={{ duration: 0.9, delay: 0.05 + i * 0.03, ease: [0.2, 0.8, 0.2, 1] }}
                       />
-                      <div
-                        className="absolute bottom-0 w-full rounded-t-md bg-secondary transition-all group-hover:opacity-90"
-                        style={{ height: `${(item.value / growthSeries[growthSeries.length - 1].value) * 100}%` }}
+                      <motion.div
+                        className="absolute bottom-0 w-full rounded-t-md bg-secondary transition-opacity group-hover:opacity-90"
+                        initial={{ height: 0 }}
+                        animate={{ height: chartInView ? `${(item.value / maxGrowthValue) * 100}%` : 0 }}
+                        transition={{ duration: 1.0, delay: 0.08 + i * 0.035, ease: [0.2, 0.8, 0.2, 1] }}
                       />
                       <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2 scale-0 rounded-md bg-foreground px-2 py-1 text-[10px] text-background transition-all group-hover:scale-100">
                         {item.year}y: {formatInr(item.value)}
@@ -383,16 +410,33 @@ export const PlannerDashboard = () => {
                     <span key={item.year}>{item.year}Y</span>
                   ))}
                 </div>
-              </div>
+              </motion.div>
               <div className="flex flex-col justify-center space-y-4">
                 <div className="rounded-2xl border border-border bg-background p-4 shadow-card">
                   <p className="text-xs font-semibold text-muted-foreground">Total Invested</p>
-                  <p className="mt-1.5 text-xl font-bold text-foreground">{formatInr(totalInvested)}</p>
+                  <p className="mt-1.5 text-xl font-bold text-foreground">
+                    <CountUpNumber value={totalInvested} format={formatInr} />
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-secondary/20 bg-secondary-soft p-4 shadow-card">
                   <p className="text-xs font-semibold text-secondary">Est. Returns</p>
-                  <p className="mt-1.5 text-xl font-bold text-foreground">{formatInr(estimatedReturns)}</p>
+                  <p className="mt-1.5 text-xl font-bold text-foreground">
+                    <CountUpNumber value={estimatedReturns} format={formatInr} />
+                  </p>
                 </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{ duration: 0.8, delay: 0.06, ease: [0.2, 0.8, 0.2, 1] }}
+                  className="rounded-2xl border border-primary/25 bg-primary-soft p-4 shadow-card"
+                >
+                  <p className="text-xs font-semibold text-primary">Future Value</p>
+                  <p className="mt-1.5 text-xl font-bold text-foreground">
+                    <CountUpNumber value={adjustedTarget} format={formatInr} />
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium text-muted-foreground">in {targetYears} years</p>
+                </motion.div>
                 <Button asChild className="h-12 w-full bg-gradient-primary text-sm font-bold shadow-card">
                   <Link to="/visualize-growth">View Chart</Link>
                 </Button>
@@ -526,6 +570,52 @@ export const PlannerDashboard = () => {
     </section>
   );
 };
+
+function CountUpNumber({
+  value,
+  format,
+  durationMs = 900,
+}: {
+  value: number;
+  format: (n: number) => string;
+  durationMs?: number;
+}) {
+  const ref = useRef<HTMLSpanElement | null>(null);
+  const [shown, setShown] = useState(false);
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setShown(true);
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!shown) return;
+    const start = performance.now();
+    const from = 0;
+    const to = Number.isFinite(value) ? value : 0;
+
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / durationMs, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setCurrent(from + (to - from) * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [durationMs, shown, value]);
+
+  return <span ref={ref}>{format(Math.round(current))}</span>;
+}
 
 const CardShell = ({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) => (
   <div className="space-y-6">

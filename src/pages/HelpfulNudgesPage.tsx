@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { calcMonthlySIP, formatInr } from "@/lib/finance";
+import { motion } from "framer-motion";
 
 const HelpfulNudgesPage = () => {
   const [targetAmount, setTargetAmount] = useState(2500000);
@@ -42,9 +43,20 @@ const HelpfulNudgesPage = () => {
       </header>
 
       <main className="container px-4 py-12 md:py-16">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10"
+        >
           <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr]">
-            <section>
+            <motion.section
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+            >
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
                 <Bell className="h-3.5 w-3.5" />
                 Helpful Nudges
@@ -68,9 +80,15 @@ const HelpfulNudgesPage = () => {
                   </div>
                 ))}
               </div>
-            </section>
+            </motion.section>
 
-            <section className="space-y-6">
+            <motion.section
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}
+              className="space-y-6"
+            >
               <div className="rounded-2xl border border-border bg-background p-6 shadow-card">
                 <p className="text-lg font-semibold">Your Plan Inputs</p>
                 <div className="mt-6 grid gap-5">
@@ -107,9 +125,9 @@ const HelpfulNudgesPage = () => {
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
-            </section>
+            </motion.section>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

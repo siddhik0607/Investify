@@ -2,23 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LogOut, Moon, Sun, User as UserIcon } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useTheme } from "next-themes";
+import { LogOut, User as UserIcon } from "lucide-react";
 
 export const Navbar = () => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     // Check for logged in user
@@ -26,6 +15,15 @@ export const Navbar = () => {
     if (name) {
       setUserName(name);
     }
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogout = () => {
@@ -36,8 +34,14 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
-      <div className="container flex h-14 items-center justify-between">
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ease-out ${
+        isScrolled
+          ? "border-b border-border/60 bg-background/70 backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className={`container flex items-center justify-between transition-all duration-300 ease-out ${isScrolled ? "h-14" : "h-16"}`}>
         <Logo />
         <nav className="hidden items-center gap-6 md:flex">
           <a href="#how" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">How it works</a>
@@ -45,31 +49,6 @@ export const Navbar = () => {
           <Link to="/faqs" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">FAQ</Link>
         </nav>
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 px-3">
-                {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                Theme
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44 rounded-2xl border border-border/60 bg-background/80 backdrop-blur-xl">
-              <DropdownMenuLabel>Theme</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border/60" />
-              <DropdownMenuRadioGroup value={theme ?? "dark"} onValueChange={(v) => setTheme(v)}>
-                <DropdownMenuRadioItem value="dark">
-                  <Moon className="mr-2 h-4 w-4" />
-                  Dark
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="light">
-                  <Sun className="mr-2 h-4 w-4" />
-                  Light
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-              <DropdownMenuSeparator className="bg-border/60" />
-              <DropdownMenuItem onClick={() => setTheme("dark")}>Reset to dark</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {userName ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/60 backdrop-blur-xl">
