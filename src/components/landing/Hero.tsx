@@ -67,16 +67,9 @@ export const Hero = () => {
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <motion.div style={{ y: parallaxY }} className="absolute inset-0">
-          {isMobile ? (
-            <div className="absolute inset-0">
-              <img src="/hero-bg.jpeg" alt="" className="h-full w-full object-cover object-center opacity-80" />
-              <div className="absolute inset-0 bg-black/45" />
-            </div>
-          ) : (
-            <Suspense fallback={null}>
-              <HeroCanvas scrollProgress={scrollProgress} />
-            </Suspense>
-          )}
+          <Suspense fallback={null}>
+            <HeroCanvas scrollProgress={scrollProgress} isMobile={isMobile} />
+          </Suspense>
         </motion.div>
 
         <motion.div
