@@ -5,12 +5,15 @@ import { HowItWorksDialog } from "@/components/landing/HowItWorksDialog";
 import { forwardRef, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "next-themes";
 
 export const Hero = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const isMobile = useIsMobile();
   const [scrollProgress, setScrollProgress] = useState(0);
+  const { resolvedTheme } = useTheme();
+  const themeMode = resolvedTheme === "light" ? "light" : "dark";
 
   const HeroCanvas = useMemo(
     () =>
@@ -63,12 +66,12 @@ export const Hero = () => {
     <section
       ref={sectionRef}
       onPointerMove={onPointerMove}
-      className="relative isolate min-h-[calc(100svh-3.5rem)] overflow-hidden bg-[#050712] text-white"
+      className="relative isolate min-h-[calc(100svh-3.5rem)] overflow-hidden text-foreground"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <motion.div style={{ y: parallaxY }} className="absolute inset-0">
           <Suspense fallback={null}>
-            <HeroCanvas scrollProgress={scrollProgress} isMobile={isMobile} />
+            <HeroCanvas scrollProgress={scrollProgress} isMobile={isMobile} theme={themeMode} />
           </Suspense>
         </motion.div>
 
@@ -80,7 +83,7 @@ export const Hero = () => {
           <div className="absolute inset-0 bg-[radial-gradient(700px_circle_at_20%_10%,rgba(16,185,129,0.25),transparent_55%)]" />
         </motion.div>
 
-        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/25" />
       </div>
 
       <div className="container relative z-10 grid min-h-[calc(100svh-3.5rem)] grid-cols-1 items-center gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:py-28">
@@ -90,9 +93,9 @@ export const Hero = () => {
           transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
           className="lg:col-span-7"
         >
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-xl">
+          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/30 px-4 py-2 backdrop-blur-xl">
             <Sparkles className="h-4 w-4 text-violet-200" />
-            <span className="text-sm font-semibold text-white/90">
+            <span className="text-sm font-semibold text-foreground">
               {displayName ? `Hi, ${displayName} — welcome to Investify.` : "Welcome to Investify."}
             </span>
           </div>
@@ -105,7 +108,7 @@ export const Hero = () => {
             you can actually follow.
           </h1>
 
-          <p className="mt-6 max-w-xl text-balance text-base leading-relaxed text-white/80 sm:text-lg">
+          <p className="mt-6 max-w-xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg">
             A car, a home, a dream trip — tell Investify what you want and when. We'll calculate the exact monthly SIP and show you how your money grows, in plain language.
           </p>
 
@@ -127,7 +130,7 @@ export const Hero = () => {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-12 px-7 text-base font-semibold border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                  className="h-12 px-7 text-base font-semibold"
                 >
                   See how it works
                 </Button>
@@ -135,7 +138,7 @@ export const Hero = () => {
             </HowItWorksDialog>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/80">
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-200" />
               Bank-grade security
@@ -163,8 +166,8 @@ export const Hero = () => {
             <FloatingCard className="mb-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-white/60">Portfolio</p>
-                  <p className="mt-1 text-lg font-bold text-white">Growth Snapshot</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Portfolio</p>
+                  <p className="mt-1 text-lg font-bold text-foreground">Growth Snapshot</p>
                 </div>
                 <div className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-200">
                   <Zap className="h-3.5 w-3.5" />
@@ -178,14 +181,14 @@ export const Hero = () => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FloatingCard>
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/60">Monthly SIP</p>
-                <p className="mt-2 text-2xl font-extrabold text-white">₹12,450</p>
-                <p className="mt-2 text-sm text-white/70">Optimized for your timeline</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Monthly SIP</p>
+                <p className="mt-2 text-2xl font-extrabold text-foreground">₹12,450</p>
+                <p className="mt-2 text-sm text-muted-foreground">Optimized for your timeline</p>
               </FloatingCard>
               <FloatingCard>
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/60">Projected</p>
-                <p className="mt-2 text-2xl font-extrabold text-white">₹8.0L</p>
-                <p className="mt-2 text-sm text-white/70">In 4 years @ 12%</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Projected</p>
+                <p className="mt-2 text-2xl font-extrabold text-foreground">₹8.0L</p>
+                <p className="mt-2 text-sm text-muted-foreground">In 4 years @ 12%</p>
               </FloatingCard>
             </div>
           </motion.div>
@@ -238,10 +241,10 @@ const Stat = ({ label, value, suffix }: { label: string; value: number; suffix: 
   return (
     <div
       ref={ref}
-      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl shadow-[0_12px_40px_-20px_rgba(79,70,229,0.55)]"
+      className="rounded-2xl border border-border/60 bg-background/30 px-4 py-3 backdrop-blur-xl shadow-elevated"
     >
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">{label}</p>
-      <p className="mt-1 text-xl font-extrabold text-white">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-extrabold text-foreground">
         {formatted}
         {suffix}
       </p>
@@ -252,7 +255,7 @@ const Stat = ({ label, value, suffix }: { label: string; value: number; suffix: 
 const FloatingCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   return (
     <motion.div
-      className={`group relative rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl shadow-[0_24px_80px_-40px_rgba(16,185,129,0.35)] ${className || ""}`}
+      className={`group relative rounded-3xl border border-border/60 bg-background/30 p-5 backdrop-blur-xl shadow-card ${className || ""}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
@@ -271,7 +274,7 @@ const FloatingCard = ({ children, className }: { children: React.ReactNode; clas
         e.currentTarget.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
       }}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(600px_circle_at_50%_0%,rgba(79,70,229,0.25),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(600px_circle_at_50%_0%,rgba(79,70,229,0.22),transparent_55%)]" />
       <div className="relative">{children}</div>
     </motion.div>
   );
@@ -314,8 +317,8 @@ const GrowthChart = () => {
   const path =
     "M2 42 C 18 38, 26 36, 36 30 C 46 24, 54 22, 62 18 C 72 13, 84 10, 98 6";
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <div className="mb-2 flex items-center justify-between text-xs text-white/60">
+    <div className="rounded-2xl border border-border/60 bg-background/30 p-4 backdrop-blur-xl">
+      <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>Projected growth</span>
         <span className="font-semibold text-emerald-200">+₹2.1L returns</span>
       </div>

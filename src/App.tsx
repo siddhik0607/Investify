@@ -9,6 +9,7 @@ import Lenis from "lenis";
 import { AnimatePresence, motion } from "framer-motion";
 import { PremiumBackground } from "@/components/PremiumBackground";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import NewGoal from "./pages/NewGoal.tsx";
@@ -114,14 +115,16 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <PremiumBackground enable3d={!isMobile} />
-          <AnimatedRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <PremiumBackground enable3d={!isMobile} />
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

@@ -17,13 +17,16 @@ export const HowItWorksDialog = ({ children }: HowItWorksDialogProps) => {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">How Investify works</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground">
             Four simple steps from your dream goal to a monthly plan you can actually follow.
           </DialogDescription>
         </DialogHeader>
 
         {/* Flow diagram */}
-        <div className="mt-2 grid gap-3 sm:grid-cols-4">
+        <div className="relative mt-2 grid gap-3 sm:grid-cols-4">
+          <div className="pointer-events-none absolute left-0 right-0 top-1/2 hidden -translate-y-1/2 sm:block">
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+          </div>
           <FlowStep
             n={1}
             icon={<Target className="h-5 w-5" />}
@@ -55,7 +58,7 @@ export const HowItWorksDialog = ({ children }: HowItWorksDialogProps) => {
         </div>
 
         {/* Formula card */}
-        <div className="mt-4 rounded-xl border border-border bg-muted/40 p-4">
+        <div className="mt-4 rounded-2xl border border-border/60 bg-background/30 p-4 backdrop-blur-xl">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">The math behind it</p>
           <p className="mt-2 font-mono text-sm">
             FV = P × [((1 + r)<sup>n</sup> − 1) / r] × (1 + r)
@@ -67,7 +70,7 @@ export const HowItWorksDialog = ({ children }: HowItWorksDialogProps) => {
         </div>
 
         {/* Mini growth visualization */}
-        <div className="mt-2 rounded-xl border border-border bg-card p-4">
+        <div className="mt-2 rounded-2xl border border-border/60 bg-background/30 p-4 backdrop-blur-xl">
           <div className="mb-2 flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Example: ₹8L in 4 years @ 12%</span>
             <div className="flex items-center gap-3">

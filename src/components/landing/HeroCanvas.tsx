@@ -6,6 +6,7 @@ import * as THREE from "three";
 type HeroCanvasProps = {
   scrollProgress: number;
   isMobile: boolean;
+  theme: "light" | "dark";
 };
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -37,7 +38,8 @@ function RoundedPlaneGeometry({ args }: { args: [number, number, number] }) {
   return <primitive object={geometry} attach="geometry" />;
 }
 
-function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
+function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
+  const isLight = theme === "light";
   const rootRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
   const nodeMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -164,37 +166,37 @@ function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
 
   const nodeMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: new THREE.Color("#A5B4FC"),
-      emissive: new THREE.Color("#A5B4FC"),
-      emissiveIntensity: 1.25,
+      color: new THREE.Color(isLight ? "#4F46E5" : "#A5B4FC"),
+      emissive: new THREE.Color(isLight ? "#4F46E5" : "#A5B4FC"),
+      emissiveIntensity: isLight ? 0.55 : 1.25,
       roughness: 0.2,
       metalness: 0,
       transparent: true,
-      opacity: 0.95,
+      opacity: isLight ? 0.75 : 0.95,
     });
-  }, []);
+  }, [isLight]);
 
   const lineMaterial = useMemo(() => {
     return new THREE.LineBasicMaterial({
-      color: new THREE.Color("#6D7CFF"),
+      color: new THREE.Color(isLight ? "#4F46E5" : "#6D7CFF"),
       transparent: true,
-      opacity: 0.18,
+      opacity: isLight ? 0.12 : 0.18,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-  }, []);
+  }, [isLight]);
 
   const pulseMaterial = useMemo(() => {
     return new THREE.PointsMaterial({
       size: isMobile ? 0.06 : 0.08,
-      color: new THREE.Color("#67E8F9"),
+      color: new THREE.Color(isLight ? "#06B6D4" : "#67E8F9"),
       transparent: true,
-      opacity: 0.9,
+      opacity: isLight ? 0.7 : 0.9,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       sizeAttenuation: true,
     });
-  }, [isMobile]);
+  }, [isLight, isMobile]);
 
   const cardMaterial = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
@@ -214,12 +216,12 @@ function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
   const emissiveMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       color: new THREE.Color("#0B1220"),
-      emissive: new THREE.Color("#6366F1"),
-      emissiveIntensity: 1.05,
+      emissive: new THREE.Color(isLight ? "#4F46E5" : "#6366F1"),
+      emissiveIntensity: isLight ? 0.55 : 1.05,
       transparent: true,
       opacity: 0.22,
     });
-  }, []);
+  }, [isLight]);
 
   useFrame(({ clock }, delta) => {
     const t = clock.getElapsedTime();
@@ -306,13 +308,13 @@ function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
 
   return (
     <>
-      <color attach="background" args={["#050712"]} />
-      <fog attach="fog" args={["#050712", 3.0, 8.0]} />
+      <color attach="background" args={[isLight ? "#F7F8FF" : "#050712"]} />
+      <fog attach="fog" args={[isLight ? "#F7F8FF" : "#050712", 3.0, 8.0]} />
 
-      <ambientLight intensity={0.6} />
-      <pointLight ref={lightRef} position={[0, 1.8, 2]} intensity={14} color={"#67E8F9"} />
-      <pointLight position={[2.2, 0.8, 3.2]} intensity={9} color={"#818CF8"} />
-      <pointLight position={[-1.6, -1.2, 2.8]} intensity={7} color={"#A7F3D0"} />
+      <ambientLight intensity={isLight ? 0.9 : 0.6} />
+      <pointLight ref={lightRef} position={[0, 1.8, 2]} intensity={isLight ? 7 : 14} color={isLight ? "#4F46E5" : "#67E8F9"} />
+      <pointLight position={[2.2, 0.8, 3.2]} intensity={isLight ? 5 : 9} color={isLight ? "#06B6D4" : "#818CF8"} />
+      <pointLight position={[-1.6, -1.2, 2.8]} intensity={isLight ? 4 : 7} color={isLight ? "#10B981" : "#A7F3D0"} />
 
       <group ref={rootRef} position={[0, 0, 0]}>
         <points ref={particlesFarRef}>
@@ -321,9 +323,9 @@ function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
           </bufferGeometry>
           <pointsMaterial
             size={isMobile ? 0.012 : 0.016}
-            color={"#A5B4FC"}
+            color={isLight ? "#4F46E5" : "#A5B4FC"}
             transparent
-            opacity={0.22}
+            opacity={isLight ? 0.12 : 0.22}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
@@ -335,9 +337,9 @@ function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
           </bufferGeometry>
           <pointsMaterial
             size={isMobile ? 0.016 : 0.02}
-            color={"#67E8F9"}
+            color={isLight ? "#06B6D4" : "#67E8F9"}
             transparent
-            opacity={0.16}
+            opacity={isLight ? 0.1 : 0.16}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
@@ -392,7 +394,7 @@ function Scene({ scrollProgress, isMobile }: HeroCanvasProps) {
   );
 }
 
-export const HeroCanvas = ({ scrollProgress, isMobile }: HeroCanvasProps) => {
+export const HeroCanvas = ({ scrollProgress, isMobile, theme }: HeroCanvasProps) => {
   return (
     <Canvas
       dpr={[1, 1.5]}
@@ -400,7 +402,7 @@ export const HeroCanvas = ({ scrollProgress, isMobile }: HeroCanvasProps) => {
       camera={{ position: [0, 0, 3.6], fov: 45 }}
     >
       <Suspense fallback={null}>
-        <Scene scrollProgress={scrollProgress} isMobile={isMobile} />
+        <Scene scrollProgress={scrollProgress} isMobile={isMobile} theme={theme} />
       </Suspense>
     </Canvas>
   );
