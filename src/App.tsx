@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import Lenis from "lenis";
 import Index from "./pages/Index.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import NewGoal from "./pages/NewGoal.tsx";
@@ -28,6 +29,27 @@ import NotFound from "./pages/NotFound.tsx";
 const queryClient = new QueryClient();
 
 const App = () => {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 1.5,
+    });
+
+    let raf = 0;
+    const loop = (time: number) => {
+      lenis.raf(time);
+      raf = window.requestAnimationFrame(loop);
+    };
+    raf = window.requestAnimationFrame(loop);
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, []);
+
   useEffect(() => {
     const checkSupabase = async () => {
       try {
