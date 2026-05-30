@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Lenis from "lenis";
+import { AnimatePresence, motion } from "framer-motion";
+import { PremiumBackground } from "@/components/PremiumBackground";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index.tsx";
 import SignIn from "./pages/SignIn.tsx";
 import NewGoal from "./pages/NewGoal.tsx";
@@ -28,7 +31,49 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
+const PageTransition = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 14 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    transition={{ duration: 0.55, ease: [0.2, 0.8, 0.2, 1] }}
+  >
+    {children}
+  </motion.div>
+);
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route path="/signin" element={<PageTransition><SignIn /></PageTransition>} />
+        <Route path="/new-goal" element={<PageTransition><NewGoal /></PageTransition>} />
+        <Route path="/goals" element={<PageTransition><GoalsPage /></PageTransition>} />
+        <Route path="/sip-calculator" element={<PageTransition><SipCalculatorPage /></PageTransition>} />
+        <Route path="/visualize-growth" element={<PageTransition><VisualizeGrowthPage /></PageTransition>} />
+        <Route path="/helpful-nudges" element={<PageTransition><HelpfulNudgesPage /></PageTransition>} />
+        <Route path="/track-progress" element={<PageTransition><TrackProgressPage /></PageTransition>} />
+        <Route path="/risk-quiz" element={<PageTransition><RiskProfileQuizPage /></PageTransition>} />
+        <Route path="/expense-planner" element={<PageTransition><ExpensePlannerPage /></PageTransition>} />
+        <Route path="/multiple-goals" element={<PageTransition><MultipleGoalsPage /></PageTransition>} />
+        <Route path="/reminders" element={<PageTransition><RemindersPage /></PageTransition>} />
+        <Route path="/download-plan" element={<PageTransition><DownloadPlanPage /></PageTransition>} />
+        <Route path="/scenario-simulator" element={<PageTransition><ScenarioSimulatorPage /></PageTransition>} />
+        <Route path="/streak-milestones" element={<PageTransition><StreakMilestonesPage /></PageTransition>} />
+        <Route path="/ai-assistant" element={<PageTransition><AIAssistantPage /></PageTransition>} />
+        <Route path="/sip-plan-result" element={<PageTransition><SipPlanResultPage /></PageTransition>} />
+        <Route path="/faqs" element={<PageTransition><FaqPage /></PageTransition>} />
+        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => {
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -73,27 +118,8 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/new-goal" element={<NewGoal />} />
-            <Route path="/goals" element={<GoalsPage />} />
-            <Route path="/sip-calculator" element={<SipCalculatorPage />} />
-            <Route path="/visualize-growth" element={<VisualizeGrowthPage />} />
-            <Route path="/helpful-nudges" element={<HelpfulNudgesPage />} />
-            <Route path="/track-progress" element={<TrackProgressPage />} />
-            <Route path="/risk-quiz" element={<RiskProfileQuizPage />} />
-            <Route path="/expense-planner" element={<ExpensePlannerPage />} />
-            <Route path="/multiple-goals" element={<MultipleGoalsPage />} />
-            <Route path="/reminders" element={<RemindersPage />} />
-            <Route path="/download-plan" element={<DownloadPlanPage />} />
-            <Route path="/scenario-simulator" element={<ScenarioSimulatorPage />} />
-            <Route path="/streak-milestones" element={<StreakMilestonesPage />} />
-            <Route path="/ai-assistant" element={<AIAssistantPage />} />
-            <Route path="/sip-plan-result" element={<SipPlanResultPage />} />
-            <Route path="/faqs" element={<FaqPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <PremiumBackground enable3d={!isMobile} />
+          <AnimatedRoutes />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ShieldCheck, TrendingUp, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { HowItWorksDialog } from "@/components/landing/HowItWorksDialog";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -284,15 +284,21 @@ const FloatingCard = ({ children, className }: { children: React.ReactNode; clas
   );
 };
 
-const MagneticButton = ({ children }: { children: React.ReactNode }) => {
-  const ref = useRef<HTMLDivElement | null>(null);
+const MagneticButton = forwardRef<HTMLDivElement, { children: React.ReactNode }>(({ children }, forwardedRef) => {
+  const localRef = useRef<HTMLDivElement | null>(null);
+
+  const setRefs = (node: HTMLDivElement | null) => {
+    localRef.current = node;
+    if (typeof forwardedRef === "function") forwardedRef(node);
+    else if (forwardedRef) forwardedRef.current = node;
+  };
 
   return (
     <div
-      ref={ref}
+      ref={setRefs}
       className="inline-flex will-change-transform"
       onPointerMove={(e) => {
-        const el = ref.current;
+        const el = localRef.current;
         if (!el) return;
         const rect = el.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width - 0.5;
@@ -300,7 +306,7 @@ const MagneticButton = ({ children }: { children: React.ReactNode }) => {
         el.style.transform = `translate3d(${(x * 10).toFixed(2)}px, ${(y * 10).toFixed(2)}px, 0)`;
       }}
       onPointerLeave={() => {
-        const el = ref.current;
+        const el = localRef.current;
         if (!el) return;
         el.style.transform = "translate3d(0,0,0)";
       }}
@@ -308,7 +314,8 @@ const MagneticButton = ({ children }: { children: React.ReactNode }) => {
       {children}
     </div>
   );
-};
+});
+MagneticButton.displayName = "MagneticButton";
 
 const GrowthChart = () => {
   const path =

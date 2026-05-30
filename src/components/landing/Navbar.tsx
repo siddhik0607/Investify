@@ -24,20 +24,20 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/50 backdrop-blur-xl">
       <div className="container flex h-14 items-center justify-between">
         <Logo />
         <nav className="hidden items-center gap-6 md:flex">
-          <a href="#how" className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">How it works</a>
-          <a href="#features" className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">Features</a>
-          <Link to="/faqs" className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">FAQ</Link>
+          <a href="#how" className="text-xs font-semibold text-white/70 transition-colors hover:text-white">How it works</a>
+          <a href="#features" className="text-xs font-semibold text-white/70 transition-colors hover:text-white">Features</a>
+          <Link to="/faqs" className="text-xs font-semibold text-white/70 transition-colors hover:text-white">FAQ</Link>
         </nav>
         <div className="flex items-center gap-4">
           {userName ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                <UserIcon className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold text-primary">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl">
+                <UserIcon className="h-3.5 w-3.5 text-white/80" />
+                <span className="text-xs font-semibold text-white/85">
                   Hello, {userName}
                 </span>
               </div>
@@ -45,7 +45,7 @@ export const Navbar = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleLogout}
-                className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive transition-colors"
+                className="h-8 px-2 text-xs text-white/70 hover:text-destructive transition-colors"
               >
                 <LogOut className="h-3.5 w-3.5 mr-1" />
                 Logout
@@ -53,7 +53,7 @@ export const Navbar = () => {
             </div>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm" className="hidden h-9 text-xs sm:inline-flex">
+              <Button asChild variant="ghost" size="sm" className="hidden h-9 text-xs sm:inline-flex text-white/80 hover:text-white">
                 <Link to="/signin">Sign in</Link>
               </Button>
               <Button asChild size="sm" className="h-9 px-4 text-xs bg-gradient-primary shadow-elevated hover:opacity-95">

@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const Index = () => {
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="min-h-screen">
       <Navbar />
       <main className="space-y-24 pb-24">
         <Hero />

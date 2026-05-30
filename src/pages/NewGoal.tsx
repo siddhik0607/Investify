@@ -100,11 +100,11 @@ const NewGoal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <header className="border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <div className="min-h-screen">
+      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white">
             <ArrowLeft className="h-4 w-4" />
             Back to home
           </Link>

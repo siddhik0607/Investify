@@ -19,11 +19,11 @@ const SipCalculatorPage = () => {
   const estimatedGrowth = Math.max(0, targetAmount - totalInvested);
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <header className="border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <div className="min-h-screen">
+      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white">
             <ArrowLeft className="h-4 w-4" />
             Back to home
           </Link>
@@ -31,7 +31,7 @@ const SipCalculatorPage = () => {
       </header>
 
       <main className="container px-4 py-12 md:py-16">
-        <div className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:p-10">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
             <section>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">

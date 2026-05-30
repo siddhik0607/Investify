@@ -20,8 +20,8 @@ const VisualizeGrowthPage = () => {
   const maxValue = Math.max(...series.map((item) => item.value), totalInvested, 1);
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <header className="border-b border-border/60 bg-background/80 backdrop-blur-md">
+    <div className="min-h-screen">
+      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
