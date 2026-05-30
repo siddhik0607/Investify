@@ -44,7 +44,7 @@ const SipPlanResultPage = () => {
   const estimatedReturns = Math.max(0, adjustedTarget - totalInvested);
 
   return (
-    <div className="min-h-screen pb-20">
+    <div data-scroll="section" className="min-h-screen pb-20">
       <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="container flex h-14 items-center justify-between px-4">
           <Logo />
@@ -55,7 +55,7 @@ const SipPlanResultPage = () => {
         </div>
       </header>
 
-      <main className="container px-4 py-10 max-w-4xl">
+      <main data-scroll="inner" className="container px-4 py-10 max-w-4xl">
         {/* Success Banner */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}

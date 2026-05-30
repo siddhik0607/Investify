@@ -29,16 +29,18 @@ export const Hero = () => {
     offset: ["start start", "end start"],
   });
 
-  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -48]);
-  const glowY = useTransform(scrollYProgress, [0, 1], [0, -24]);
-  const contentY = useTransform(scrollYProgress, [0, 0.9], [0, -64]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.35]);
-  const headlineY = useTransform(scrollYProgress, [0, 0.75], [0, -18]);
-  const headlineOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0.55]);
-  const ctaY = useTransform(scrollYProgress, [0, 0.75], [0, -12]);
-  const ctaOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.6]);
-  const cardsScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
-  const cardsY = useTransform(scrollYProgress, [0, 1], [0, -24]);
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -140]);
+  const glowY = useTransform(scrollYProgress, [0, 1], [0, -110]);
+  const overlayY = useTransform(scrollYProgress, [0, 1], [0, -70]);
+  const contentY = useTransform(scrollYProgress, [0, 0.95], [0, -220]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.14]);
+  const headlineY = useTransform(scrollYProgress, [0, 0.8], [0, -52]);
+  const headlineOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.35]);
+  const ctaY = useTransform(scrollYProgress, [0, 0.85], [0, -40]);
+  const ctaOpacity = useTransform(scrollYProgress, [0, 0.9], [1, 0.28]);
+  const cardsScale = useTransform(scrollYProgress, [0, 1], [1, 0.82]);
+  const cardsY = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const cardsRotate = useTransform(scrollYProgress, [0, 1], [0, -3]);
 
   useEffect(() => {
     const name = localStorage.getItem("user_name")?.trim() || null;
@@ -68,6 +70,7 @@ export const Hero = () => {
     <section
       ref={sectionRef}
       onPointerMove={onPointerMove}
+      data-scroll="section"
       className="relative isolate min-h-[calc(100svh-3.5rem)] overflow-hidden text-foreground"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -85,10 +88,10 @@ export const Hero = () => {
           <div className="absolute inset-0 bg-[radial-gradient(700px_circle_at_20%_10%,rgba(16,185,129,0.25),transparent_55%)]" />
         </motion.div>
 
-        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/25" />
+        <motion.div style={{ y: overlayY }} className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/25" />
       </div>
 
-      <div className="container relative z-10 grid min-h-[calc(100svh-3.5rem)] grid-cols-1 items-center gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:py-28">
+      <div data-scroll="inner" className="container relative z-10 grid min-h-[calc(100svh-3.5rem)] grid-cols-1 items-center gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:py-28">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -155,7 +158,7 @@ export const Hero = () => {
           </div>
         </motion.div>
 
-        <motion.div className="relative lg:col-span-5" style={{ y: cardsY, scale: cardsScale }}>
+        <motion.div className="relative lg:col-span-5" style={{ y: cardsY, scale: cardsScale, rotate: cardsRotate }}>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}

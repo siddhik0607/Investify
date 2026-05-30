@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export const Footer = () => (
-  <footer className="border-t border-border/60 bg-background py-12">
-    <div className="container px-4">
+  <footer data-scroll="section" data-exit-opacity="0.95" className="relative overflow-hidden border-t border-border/60 bg-background py-12">
+    <div data-scroll="inner" className="container px-4">
       <section className="overflow-hidden rounded-2xl bg-[linear-gradient(135deg,hsl(226_66%_14%),hsl(231_66%_10%))] p-6 text-white shadow-elevated lg:p-8">
         <div className="grid gap-8 xl:grid-cols-[1.5fr_0.8fr_0.8fr_0.8fr_1.2fr]">
           <div className="space-y-4">

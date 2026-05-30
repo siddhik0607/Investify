@@ -31,8 +31,17 @@ const features = [
 ];
 
 export const Features = () => (
-  <section id="features" className="border-t border-border/60 bg-background py-20 md:py-28">
-    <div className="container px-4">
+  <section
+    id="features"
+    data-scroll="section"
+    className="relative overflow-hidden border-t border-border/60 bg-background py-20 md:py-28"
+  >
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      <div data-parallax="0.06" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_10%,rgba(79,70,229,0.16),transparent_58%)]" />
+      <div data-parallax="0.12" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_80%_30%,rgba(16,185,129,0.10),transparent_60%)]" />
+      <div data-parallax="0.18" className="absolute inset-0 bg-[radial-gradient(1200px_circle_at_50%_90%,rgba(99,102,241,0.10),transparent_62%)]" />
+    </div>
+    <div data-scroll="inner" className="container px-4">
       <div className="mx-auto max-w-2xl text-center">
         <p className="text-sm font-semibold uppercase tracking-wider text-primary">Why Investify</p>
         <h2 className="mt-3 text-balance text-3xl font-bold sm:text-4xl">
@@ -43,20 +52,11 @@ export const Features = () => (
         </p>
       </div>
 
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={{
-          hidden: {},
-          show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-        }}
-        className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
-      >
+      <div data-stagger="cards" className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {features.map((f) => (
           <FeatureCard key={f.title} title={f.title} desc={f.desc} to={f.to} icon={<f.icon className="h-5 w-5" />} />
         ))}
-      </motion.div>
+      </div>
     </div>
   </section>
 );
@@ -77,12 +77,7 @@ const FeatureCard = ({
   const rotateY = useSpring(0, { stiffness: 180, damping: 18, mass: 0.4 });
 
   return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 18, scale: 0.985 },
-        show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.2, 0.8, 0.2, 1] } },
-      }}
-    >
+    <div data-card>
       <Link
         ref={ref}
         to={to}
@@ -121,6 +116,6 @@ const FeatureCard = ({
           </div>
         </motion.div>
       </Link>
-    </motion.div>
+    </div>
   );
 };

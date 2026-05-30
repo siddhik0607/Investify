@@ -10,11 +10,12 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div data-scroll="section" className="flex min-h-screen items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+        data-scroll="inner"
         className="text-center rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl"
       >
         <h1 className="mb-4 text-4xl font-bold">404</h1>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { buildGrowthSeries, calcMonthlySIP, formatInr } from "@/lib/finance";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 
 const lifestyleAdjustments: Record<string, number> = {
   balanced: 1,
@@ -164,7 +164,7 @@ export const PlannerDashboard = () => {
       } else {
         toast.success("Plan saved to database!");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving plan:", error);
       // Proceeding anyway
     } finally {
@@ -178,8 +178,6 @@ export const PlannerDashboard = () => {
     [expectedReturn, recommendedSip, targetYears],
   );
   const maxGrowthValue = growthSeries[growthSeries.length - 1]?.value || 1;
-  const chartRef = useRef<HTMLDivElement | null>(null);
-  const chartInView = useInView(chartRef, { once: true, amount: 0.35 });
   const totalInvested = recommendedSip * targetYears * 12;
   const estimatedReturns = Math.max(0, adjustedTarget - totalInvested);
   const safeRatio = Math.min(100, Math.round((income * 0.35 > 0 ? recommendedSip / (income * 0.35) : 0) * 100));
@@ -191,8 +189,17 @@ export const PlannerDashboard = () => {
   const customGoalSummary = `${selectedGoal} • ${formatInr(adjustedTarget)} target`;
 
   return (
-    <section id="how" className="border-t border-border/60 bg-background py-16 md:py-20">
-      <div className="container space-y-12 px-6">
+    <section
+      id="how"
+      data-scroll="section"
+      className="relative overflow-hidden border-t border-border/60 bg-background py-16 md:py-20"
+    >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div data-parallax="0.06" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_25%_15%,rgba(79,70,229,0.16),transparent_58%)]" />
+        <div data-parallax="0.12" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_80%_30%,rgba(16,185,129,0.10),transparent_60%)]" />
+        <div data-parallax="0.18" className="absolute inset-0 bg-[radial-gradient(1200px_circle_at_50%_85%,rgba(99,102,241,0.10),transparent_62%)]" />
+      </div>
+      <div data-scroll="inner" className="container space-y-12 px-6">
         <div className="grid gap-8">
           <CardShell title="1. Smart Goal Setup" subtitle="Pick a goal or create your own to get started">
             <div className="grid gap-8 lg:grid-cols-[2.5fr_1fr]">
@@ -342,7 +349,9 @@ export const PlannerDashboard = () => {
               >
                 <p className="text-xs font-semibold text-primary">Your Recommended SIP</p>
                 <p className="mt-3 text-4xl font-bold text-foreground">
-                  <CountUpNumber value={recommendedSip} format={formatInr} />
+                  <span data-count-to={recommendedSip} data-count-format="inr">
+                    {formatInr(0)}
+                  </span>
                   <span className="ml-1.5 text-base font-medium text-muted-foreground">/mo</span>
                 </p>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">Comfortable investment based on your setup.</p>
@@ -367,7 +376,6 @@ export const PlannerDashboard = () => {
           <CardShell title="3. Growth Visualization" subtitle="Visualize your wealth growth over time.">
             <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
               <motion.div
-                ref={chartRef}
                 initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.25 }}
@@ -384,20 +392,18 @@ export const PlannerDashboard = () => {
                     Growth
                   </span>
                 </div>
-                <div className="flex h-48 items-end gap-2 px-1">
+                <div data-growth-wrap className="flex h-48 items-end gap-2 px-1">
                   {growthSeries.map((item, i) => (
                     <div key={item.year} className="group relative flex-1">
-                      <motion.div
+                      <div
+                        data-growth-bar={`${(item.invested / maxGrowthValue) * 100}%`}
                         className="w-full rounded-t-md bg-primary/20 transition-colors group-hover:bg-primary/30"
-                        initial={{ height: 0 }}
-                        animate={{ height: chartInView ? `${(item.invested / maxGrowthValue) * 100}%` : 0 }}
-                        transition={{ duration: 0.9, delay: 0.05 + i * 0.03, ease: [0.2, 0.8, 0.2, 1] }}
+                        style={{ height: 0 }}
                       />
-                      <motion.div
+                      <div
+                        data-growth-bar={`${(item.value / maxGrowthValue) * 100}%`}
                         className="absolute bottom-0 w-full rounded-t-md bg-secondary transition-opacity group-hover:opacity-90"
-                        initial={{ height: 0 }}
-                        animate={{ height: chartInView ? `${(item.value / maxGrowthValue) * 100}%` : 0 }}
-                        transition={{ duration: 1.0, delay: 0.08 + i * 0.035, ease: [0.2, 0.8, 0.2, 1] }}
+                        style={{ height: 0 }}
                       />
                       <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2 scale-0 rounded-md bg-foreground px-2 py-1 text-[10px] text-background transition-all group-hover:scale-100">
                         {item.year}y: {formatInr(item.value)}
@@ -415,13 +421,17 @@ export const PlannerDashboard = () => {
                 <div className="rounded-2xl border border-border bg-background p-4 shadow-card">
                   <p className="text-xs font-semibold text-muted-foreground">Total Invested</p>
                   <p className="mt-1.5 text-xl font-bold text-foreground">
-                    <CountUpNumber value={totalInvested} format={formatInr} />
+                    <span data-count-to={totalInvested} data-count-format="inr">
+                      {formatInr(0)}
+                    </span>
                   </p>
                 </div>
                 <div className="rounded-2xl border border-secondary/20 bg-secondary-soft p-4 shadow-card">
                   <p className="text-xs font-semibold text-secondary">Est. Returns</p>
                   <p className="mt-1.5 text-xl font-bold text-foreground">
-                    <CountUpNumber value={estimatedReturns} format={formatInr} />
+                    <span data-count-to={estimatedReturns} data-count-format="inr">
+                      {formatInr(0)}
+                    </span>
                   </p>
                 </div>
                 <motion.div
@@ -433,7 +443,9 @@ export const PlannerDashboard = () => {
                 >
                   <p className="text-xs font-semibold text-primary">Future Value</p>
                   <p className="mt-1.5 text-xl font-bold text-foreground">
-                    <CountUpNumber value={adjustedTarget} format={formatInr} />
+                    <span data-count-to={adjustedTarget} data-count-format="inr">
+                      {formatInr(0)}
+                    </span>
                   </p>
                   <p className="mt-1 text-[11px] font-medium text-muted-foreground">in {targetYears} years</p>
                 </motion.div>
@@ -570,52 +582,6 @@ export const PlannerDashboard = () => {
     </section>
   );
 };
-
-function CountUpNumber({
-  value,
-  format,
-  durationMs = 900,
-}: {
-  value: number;
-  format: (n: number) => string;
-  durationMs?: number;
-}) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const [shown, setShown] = useState(false);
-  const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) setShown(true);
-      },
-      { threshold: 0.35 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!shown) return;
-    const start = performance.now();
-    const from = 0;
-    const to = Number.isFinite(value) ? value : 0;
-
-    let raf = 0;
-    const tick = (now: number) => {
-      const t = Math.min((now - start) / durationMs, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setCurrent(from + (to - from) * eased);
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [durationMs, shown, value]);
-
-  return <span ref={ref}>{format(Math.round(current))}</span>;
-}
 
 const CardShell = ({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) => (
   <div className="space-y-6">

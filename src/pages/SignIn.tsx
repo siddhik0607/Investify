@@ -10,7 +10,7 @@ const SignIn = () => {
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
 
   return (
-    <div className="min-h-screen">
+    <div data-scroll="section" className="min-h-screen">
       <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
@@ -27,6 +27,7 @@ const SignIn = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          data-scroll="inner"
           className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl md:p-10"
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/80">

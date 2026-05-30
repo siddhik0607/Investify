@@ -64,18 +64,19 @@ export async function registerUser(email: string, password: string, username: st
 
     console.log('Registration successful:', data);
     return { success: true, data };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error('Full registration error:', error);
     
     // Special handling for network errors like "Load failed"
-    if (error.message === 'Load failed' || error instanceof TypeError) {
+    if (message === 'Load failed' || error instanceof TypeError) {
       return { 
         success: false, 
         error: "Network Error: Could not connect to Supabase. This usually means the database is paused, the API key is invalid, or an adblocker is blocking the request." 
       };
     }
     
-    return { success: false, error: error.message };
+    return { success: false, error: message };
   }
 }
 
@@ -117,17 +118,18 @@ export async function loginUser(email: string, password: string) {
     } else {
       return { success: false, message: 'Invalid password' };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error('Full login error:', error);
     
     // Special handling for network errors like "Load failed"
-    if (error.message === 'Load failed' || error instanceof TypeError) {
+    if (message === 'Load failed' || error instanceof TypeError) {
       return { 
         success: false, 
         error: "Network Error: Could not connect to Supabase. This usually means the database is paused, the API key is invalid, or an adblocker is blocking the request." 
       };
     }
     
-    return { success: false, error: error.message };
+    return { success: false, error: message };
   }
 }

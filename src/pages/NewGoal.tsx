@@ -92,7 +92,7 @@ const NewGoal = () => {
       } else {
         toast({ title: "Plan saved successfully!" });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error saving plan:", err);
     } finally {
       setIsSubmitting(false);
@@ -101,7 +101,7 @@ const NewGoal = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div data-scroll="section" className="min-h-screen">
       <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
@@ -112,7 +112,7 @@ const NewGoal = () => {
         </div>
       </header>
 
-      <main className="container px-4 py-8 lg:py-12">
+      <main data-scroll="inner" className="container px-4 py-8 lg:py-12">
         {name && (
           <motion.div
             initial={{ opacity: 0, y: 14 }}

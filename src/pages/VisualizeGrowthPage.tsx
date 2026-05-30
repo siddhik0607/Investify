@@ -21,7 +21,7 @@ const VisualizeGrowthPage = () => {
   const maxValue = Math.max(...series.map((item) => item.value), totalInvested, 1);
 
   return (
-    <div className="min-h-screen">
+    <div data-scroll="section" className="min-h-screen">
       <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
@@ -38,6 +38,7 @@ const VisualizeGrowthPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          data-scroll="inner"
           className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10"
         >
           <motion.div

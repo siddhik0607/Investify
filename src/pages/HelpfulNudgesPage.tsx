@@ -31,7 +31,7 @@ const HelpfulNudgesPage = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div data-scroll="section" className="min-h-screen">
       <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
@@ -48,6 +48,7 @@ const HelpfulNudgesPage = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
+          data-scroll="inner"
           className="mx-auto max-w-6xl rounded-3xl border border-border bg-card p-8 shadow-elevated lg:p-10"
         >
           <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr]">

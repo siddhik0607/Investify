@@ -236,7 +236,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
       const targetRotY = pointer.x * 0.12;
       rootRef.current.rotation.x = THREE.MathUtils.damp(rootRef.current.rotation.x, targetRotX, 6, delta);
       rootRef.current.rotation.y = THREE.MathUtils.damp(rootRef.current.rotation.y, targetRotY, 6, delta);
-      rootRef.current.position.y = THREE.MathUtils.damp(rootRef.current.position.y, floatY - sp * 0.28, 6, delta);
+      rootRef.current.position.y = THREE.MathUtils.damp(rootRef.current.position.y, floatY - sp * (isMobile ? 0.38 : 0.62), 6, delta);
       const baseScale = THREE.MathUtils.lerp(1.1, 1.0, popEased);
       rootRef.current.scale.set(baseScale, baseScale, 1);
     }
@@ -249,12 +249,18 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
     }
 
     const targetCamX = pointer.x * 0.18 + Math.sin(t * 0.12) * 0.08;
-    const targetCamY = pointer.y * 0.12 + Math.sin(t * 0.1) * 0.05 + sp * 0.06;
-    const targetCamZ = 3.6 + sp * 0.35;
+    const targetCamY = pointer.y * 0.12 + Math.sin(t * 0.1) * 0.05 + sp * 0.14;
+    const targetCamZ = 3.6 + sp * 0.9;
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetCamX, 3.5, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetCamY, 3.5, delta);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, targetCamZ, 3.5, delta);
     camera.lookAt(0.2, 0, 0);
+
+    const baseLineOpacity = isLight ? 0.1 : 0.14;
+    const peakLineOpacity = isLight ? 0.32 : 0.38;
+    lineMaterial.opacity = THREE.MathUtils.damp(lineMaterial.opacity, THREE.MathUtils.lerp(baseLineOpacity, peakLineOpacity, sp), 6, delta);
+    const basePulseOpacity = isLight ? 0.65 : 0.9;
+    pulseMaterial.opacity = THREE.MathUtils.damp(pulseMaterial.opacity, THREE.MathUtils.lerp(basePulseOpacity, basePulseOpacity + 0.18, sp), 6, delta);
 
     if (nodeMeshRef.current) {
       const dummy = new THREE.Object3D();
@@ -289,7 +295,13 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
       attr.needsUpdate = true;
     }
 
-    const updateParticles = (pts: THREE.Points | null, data: { count: number; pos: Float32Array; seed: Float32Array }, amp: number, speed: number) => {
+    const updateParticles = (
+      pts: THREE.Points | null,
+      data: { count: number; pos: Float32Array; seed: Float32Array },
+      amp: number,
+      speed: number,
+      scrollAmp: number,
+    ) => {
       if (!pts) return;
       const geom = pts.geometry as THREE.BufferGeometry;
       const attr = geom.getAttribute("position") as THREE.BufferAttribute;
@@ -301,13 +313,13 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
         const s = data.seed[i];
         const dy = Math.sin(t * speed + s) * amp;
         const dx = Math.cos(t * (speed * 0.7) + s) * (amp * 0.6);
-        attr.setXYZ(i, baseX + dx, baseY + dy - sp * 0.12, baseZ);
+        attr.setXYZ(i, baseX + dx, baseY + dy - sp * scrollAmp, baseZ);
       }
       attr.needsUpdate = true;
     };
 
-    updateParticles(particlesNearRef.current, particlesNear, 0.035, 0.22);
-    updateParticles(particlesFarRef.current, particlesFar, 0.06, 0.12);
+    updateParticles(particlesNearRef.current, particlesNear, 0.04, 0.22, isMobile ? 0.18 : 0.28);
+    updateParticles(particlesFarRef.current, particlesFar, 0.07, 0.12, isMobile ? 0.12 : 0.22);
   });
 
   return (
@@ -356,7 +368,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
           <primitive object={lineMaterial} attach="material" />
         </lineSegments>
 
-        <instancedMesh ref={nodeMeshRef} args={[undefined as any, undefined as any, nodeData.nodeCount]} frustumCulled={false}>
+        <instancedMesh ref={nodeMeshRef} args={[undefined, undefined, nodeData.nodeCount]} frustumCulled={false}>
           <sphereGeometry args={[1, 18, 18]} />
           <primitive object={nodeMaterial} attach="material" />
         </instancedMesh>

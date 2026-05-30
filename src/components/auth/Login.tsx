@@ -39,10 +39,11 @@ export const Login = () => {
       } else {
         throw new Error(result.message || result.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Invalid email or password.";
       toast({
         title: "Login Failed",
-        description: error.message || "Invalid email or password.",
+        description: message,
         variant: "destructive",
       });
     } finally {

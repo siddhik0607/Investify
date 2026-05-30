@@ -44,10 +44,12 @@ export const SignUp = () => {
       // Force a reload to update the Navbar
       window.location.reload();
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to connect to database. Check if 'user_credentials' table exists.";
       toast({
         title: "Registration Error",
-        description: error.message || "Failed to connect to database. Check if 'user_credentials' table exists.",
+        description: message,
         variant: "destructive",
       });
     } finally {
