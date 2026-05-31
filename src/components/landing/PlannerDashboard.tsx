@@ -219,9 +219,9 @@ export const PlannerDashboard = () => {
       className="relative overflow-hidden border-t border-border/60 bg-background py-16 md:py-20"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div data-parallax="0.06" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_25%_15%,rgba(79,70,229,0.16),transparent_58%)]" />
-        <div data-parallax="0.12" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_80%_30%,rgba(16,185,129,0.10),transparent_60%)]" />
-        <div data-parallax="0.18" className="absolute inset-0 bg-[radial-gradient(1200px_circle_at_50%_85%,rgba(99,102,241,0.10),transparent_62%)]" />
+        <div data-depth="bg" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_25%_15%,rgba(79,70,229,0.16),transparent_58%)]" />
+        <div data-depth="mid" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_80%_30%,rgba(16,185,129,0.10),transparent_60%)]" />
+        <div data-depth="fg" className="absolute inset-0 bg-[radial-gradient(1200px_circle_at_50%_85%,rgba(99,102,241,0.10),transparent_62%)]" />
       </div>
       <div data-scroll="inner" className="container space-y-12 px-6">
         <div className="grid gap-8">

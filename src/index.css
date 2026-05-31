@@ -112,6 +112,12 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  #depth-root {
+    --p-bg: 0px;
+    --p-mid: 0px;
+    --p-fg: 0px;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -130,4 +136,8 @@
   .shadow-card     { box-shadow: var(--shadow-card); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
   .text-balance    { text-wrap: balance; }
+
+  #depth-root [data-depth="bg"] { transform: translate3d(0, var(--p-bg), 0) scale(1.06); will-change: transform; }
+  #depth-root [data-depth="mid"] { transform: translate3d(0, var(--p-mid), 0) scale(1.03); will-change: transform; }
+  #depth-root [data-depth="fg"] { transform: translate3d(0, var(--p-fg), 0) scale(1.01); will-change: transform; }
 }

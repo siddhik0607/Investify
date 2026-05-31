@@ -6,8 +6,8 @@ import { motion } from "framer-motion";
 export const CTA = () => (
   <section data-scroll="section" className="relative overflow-hidden py-20 md:py-28">
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <div data-parallax="0.07" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_20%,rgba(255,255,255,0.10),transparent_55%)]" />
-      <div data-parallax="0.14" className="absolute inset-0 bg-[radial-gradient(1100px_circle_at_80%_70%,rgba(255,255,255,0.08),transparent_60%)]" />
+      <div data-depth="bg" className="absolute inset-0 bg-[radial-gradient(900px_circle_at_20%_20%,rgba(255,255,255,0.10),transparent_55%)]" />
+      <div data-depth="fg" className="absolute inset-0 bg-[radial-gradient(1100px_circle_at_80%_70%,rgba(255,255,255,0.08),transparent_60%)]" />
     </div>
     <div data-scroll="inner" className="container px-4">
       <motion.div

@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogOut, User as UserIcon } from "lucide-react";
 
 export const Navbar = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const isScrolledRef = useRef(false);
+  const scrollRafRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,12 +21,28 @@ export const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => {
-      setIsScrolled(window.scrollY > 8);
+    const update = () => {
+      scrollRafRef.current = null;
+      const next = window.scrollY > 8;
+      if (next === isScrolledRef.current) return;
+      isScrolledRef.current = next;
+      setIsScrolled(next);
     };
-    onScroll();
+
+    const onScroll = () => {
+      if (scrollRafRef.current != null) return;
+      scrollRafRef.current = window.requestAnimationFrame(update);
+    };
+
+    isScrolledRef.current = window.scrollY > 8;
+    setIsScrolled(isScrolledRef.current);
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (scrollRafRef.current != null) window.cancelAnimationFrame(scrollRafRef.current);
+      scrollRafRef.current = null;
+    };
   }, []);
 
   const handleLogout = () => {
@@ -48,7 +66,7 @@ export const Navbar = () => {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ease-out ${
         isScrolled
-          ? "border-b border-border/60 bg-background/70"
+          ? "border-b border-border/60 bg-background/70 shadow-sm"
           : "border-b border-transparent bg-transparent"
       }`}
     >

@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Suspense, lazy, useEffect, useRef } from "react";
+import { Profiler, Suspense, lazy, useEffect, useRef } from "react";
 import Lenis from "lenis";
 import { AnimatePresence, motion } from "framer-motion";
 import { PremiumBackground } from "@/components/PremiumBackground";
@@ -45,6 +45,12 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const queryClient = new QueryClient();
 
 gsap.registerPlugin(ScrollTrigger);
+
+const PERF_DEBUG =
+  import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("perf=1");
+const DEBUG_SERVER_URL = "http://127.0.0.1:7777/event";
+const DEBUG_SESSION_ID = "scroll-lag-60fps";
+const DEBUG_RUN_ID = "post-fix-2";
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -282,6 +288,40 @@ const ScrollAnimator = ({
         });
       }
 
+      // #region debug-point A:scrolltrigger-inventory
+      if (PERF_DEBUG) {
+        try {
+          const all = ScrollTrigger.getAll();
+          const active = all.filter((t) => t.isActive).length;
+          fetch(DEBUG_SERVER_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+              sessionId: DEBUG_SESSION_ID,
+              runId: DEBUG_RUN_ID,
+              hypothesisId: "A",
+              location: "App.tsx:ScrollAnimator",
+              msg: "[DEBUG] ScrollTrigger inventory",
+              data: {
+                pathname: location.pathname,
+                isMobile,
+                lowEnd,
+                triggers: all.length,
+                active,
+                sections: document.querySelectorAll('[data-scroll="section"]').length,
+                cards: document.querySelectorAll("[data-card]").length,
+                counters: document.querySelectorAll("[data-count-to]").length,
+                bars: document.querySelectorAll("[data-growth-bar]").length,
+              },
+              ts: Date.now(),
+            }),
+          }).catch(() => {});
+        } catch (err) {
+          void err;
+        }
+      }
+      // #endregion
     });
 
     ctxRef.current = ctx;
@@ -301,6 +341,8 @@ const App = () => {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
+    const existed = PERF_DEBUG ? typeof window.__lenis !== "undefined" : false;
+
     const lenis = new Lenis({
       duration: 1.4,
       easing: (t: number) => 1 - Math.pow(1 - t, 3),
@@ -320,32 +362,49 @@ const App = () => {
     };
     window.__lenis = lenis;
 
-    const parallaxEls = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
-    const parallaxItems = parallaxEls
-      .map((el) => {
-        const raw = el.dataset.parallax;
-        const parsed = raw ? Number.parseFloat(raw) : Number.NaN;
-        const speed = Number.isFinite(parsed) ? parsed : 0;
-        return { el, speed };
-      })
-      .filter((x) => x.speed !== 0);
     let parallaxRaf = 0;
     let latestScroll = window.scrollY;
+    let lastScroll = latestScroll;
+    let latestVelocity = 0;
     let parallaxQueued = false;
+    let depthTick = 0;
+    let depthRoot: HTMLElement | null = null;
+    const ensureDepthRoot = () => {
+      if (depthRoot) return depthRoot;
+      depthRoot = document.getElementById("depth-root") as HTMLElement | null;
+      return depthRoot;
+    };
+    let maxScroll = 1;
+    const recalcMaxScroll = () => {
+      maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    };
+    recalcMaxScroll();
     const updateParallax = () => {
       parallaxQueued = false;
-      for (const item of parallaxItems) {
-        item.el.style.transform = `translate3d(0,${(-latestScroll * item.speed).toFixed(2)}px,0)`;
-      }
+      const root = ensureDepthRoot();
+      if (!root) return;
+      depthTick += 1;
+      if (window.__scrollFast === true && depthTick % 2 === 1) return;
+      const s = latestScroll;
+      root.style.setProperty("--p-bg", `${Math.round(-s * 0.06)}px`);
+      root.style.setProperty("--p-mid", `${Math.round(-s * 0.1)}px`);
+      root.style.setProperty("--p-fg", `${Math.round(-s * 0.14)}px`);
     };
     const onLenisScroll = (e: unknown) => {
       if (e && typeof e === "object" && "scroll" in e) {
         const s = (e as { scroll?: unknown }).scroll;
+        const v = (e as { velocity?: unknown }).velocity;
         if (typeof s === "number") latestScroll = s;
         else latestScroll = window.scrollY;
+        if (typeof v === "number") latestVelocity = v;
+        else latestVelocity = latestScroll - lastScroll;
       } else {
         latestScroll = window.scrollY;
+        latestVelocity = latestScroll - lastScroll;
       }
+      lastScroll = latestScroll;
+      window.__scrollVelocity = latestVelocity;
+      window.__scrollFast = Math.abs(latestVelocity) > 24;
       if (!parallaxQueued) {
         parallaxQueued = true;
         parallaxRaf = window.requestAnimationFrame(updateParallax);
@@ -353,6 +412,199 @@ const App = () => {
     };
     lenis.on("scroll", onLenisScroll);
     parallaxRaf = window.requestAnimationFrame(updateParallax);
+
+    const onResize = () => {
+      recalcMaxScroll();
+      if (!parallaxQueued) {
+        parallaxQueued = true;
+        parallaxRaf = window.requestAnimationFrame(updateParallax);
+      }
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+
+    // #region debug-point C:lenis-init-post
+    if (PERF_DEBUG) {
+      try {
+        fetch(DEBUG_SERVER_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            sessionId: DEBUG_SESSION_ID,
+            runId: DEBUG_RUN_ID,
+            hypothesisId: "C",
+            location: "App.tsx:LenisInit",
+            msg: "[DEBUG] Lenis initialized",
+            data: {
+              existed,
+              duration: 1.4,
+              wheelMultiplier: 1.0,
+              touchMultiplier: 1.1,
+              maxScroll,
+              deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null,
+              hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+              reduceMotion: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? null,
+            },
+            ts: Date.now(),
+          }),
+        }).catch(() => {});
+      } catch (err) {
+        void err;
+      }
+    }
+    // #endregion
+    let rafId = 0;
+    let resourceObserver: PerformanceObserver | null = null;
+    let longTaskObserver: PerformanceObserver | null = null;
+    if (PERF_DEBUG) {
+      // #region debug-point D:frame-sampler
+      let last = performance.now();
+      let lastSend = last;
+      let sum = 0;
+      let n = 0;
+      let longFrames = 0;
+      let maxDt = 0;
+      const loop = (now: number) => {
+        const dt = now - last;
+        last = now;
+        sum += dt;
+        n += 1;
+        if (dt > 24) longFrames += 1;
+        if (dt > maxDt) maxDt = dt;
+        if (now - lastSend > 2000) {
+          const avg = n ? sum / n : 16.67;
+          const fps = avg > 0 ? Math.round(1000 / avg) : 0;
+          try {
+            fetch(DEBUG_SERVER_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "text/plain" },
+              body: JSON.stringify({
+                sessionId: DEBUG_SESSION_ID,
+                runId: DEBUG_RUN_ID,
+                hypothesisId: "D",
+                location: "App.tsx:RAF",
+                msg: "[DEBUG] Frame sampler",
+                data: {
+                  fps,
+                  avgDtMs: Number(avg.toFixed(2)),
+                  maxDtMs: Number(maxDt.toFixed(2)),
+                  longFrames,
+                  pathname: window.location.pathname,
+                  scrollY: Math.round(window.scrollY),
+                },
+                ts: Date.now(),
+              }),
+            }).catch(() => {});
+          } catch (err) {
+            void err;
+          }
+          sum = 0;
+          n = 0;
+          longFrames = 0;
+          maxDt = 0;
+          lastSend = now;
+        }
+        rafId = window.requestAnimationFrame(loop);
+      };
+      rafId = window.requestAnimationFrame(loop);
+      // #endregion
+
+      // #region debug-point F:resource-timing
+      let resSend = 0;
+      resourceObserver =
+        "PerformanceObserver" in window
+          ? new PerformanceObserver(() => {
+              const now = performance.now();
+              if (now - resSend < 5000) return;
+              resSend = now;
+              const entries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+              const rows = entries
+                .filter(
+                  (e) =>
+                    typeof e.name === "string" &&
+                    e.name &&
+                    (e.initiatorType === "img" || e.initiatorType === "script" || e.initiatorType === "link"),
+                )
+                .map((e) => ({
+                  name: e.name,
+                  type: e.initiatorType,
+                  transferSize: Number.isFinite(e.transferSize) ? e.transferSize : null,
+                  encodedBodySize: Number.isFinite(e.encodedBodySize) ? e.encodedBodySize : null,
+                  decodedBodySize: Number.isFinite(e.decodedBodySize) ? e.decodedBodySize : null,
+                  durationMs: Number(e.duration.toFixed(2)),
+                }))
+                .sort((a, b) => (b.transferSize ?? b.encodedBodySize ?? 0) - (a.transferSize ?? a.encodedBodySize ?? 0))
+                .slice(0, 8);
+              try {
+                fetch(DEBUG_SERVER_URL, {
+                  method: "POST",
+                  mode: "no-cors",
+                  headers: { "Content-Type": "text/plain" },
+                  body: JSON.stringify({
+                    sessionId: DEBUG_SESSION_ID,
+                    runId: DEBUG_RUN_ID,
+                    hypothesisId: "F",
+                    location: "App.tsx:ResourceTiming",
+                    msg: "[DEBUG] Resource timing top",
+                    data: { top: rows },
+                    ts: Date.now(),
+                  }),
+                }).catch(() => {});
+              } catch (err) {
+                void err;
+              }
+            })
+          : null;
+      try {
+        resourceObserver?.observe({ entryTypes: ["resource"] });
+      } catch (err) {
+        void err;
+      }
+      // #endregion
+
+      // #region debug-point E:longtask
+      let ltSend = 0;
+      let ltCount = 0;
+      let ltMax = 0;
+      longTaskObserver =
+        "PerformanceObserver" in window
+          ? new PerformanceObserver((list) => {
+              for (const entry of list.getEntries()) {
+                ltCount += 1;
+                const d = (entry as PerformanceEntry).duration || 0;
+                if (d > ltMax) ltMax = d;
+              }
+              const now = performance.now();
+              if (now - ltSend < 2000) return;
+              ltSend = now;
+              try {
+                fetch(DEBUG_SERVER_URL, {
+                  method: "POST",
+                  mode: "no-cors",
+                  headers: { "Content-Type": "text/plain" },
+                  body: JSON.stringify({
+                    sessionId: DEBUG_SESSION_ID,
+                    runId: DEBUG_RUN_ID,
+                    hypothesisId: "E",
+                    location: "App.tsx:LongTask",
+                    msg: "[DEBUG] Long task summary",
+                    data: { longTaskCount: ltCount, longTaskMaxMs: Number(ltMax.toFixed(2)) },
+                    ts: Date.now(),
+                  }),
+                }).catch(() => {});
+              } catch (err) {
+                void err;
+              }
+            })
+          : null;
+      try {
+        longTaskObserver?.observe({ entryTypes: ["longtask"] });
+      } catch (err) {
+        void err;
+      }
+      // #endregion
+    }
 
     lenis.on("scroll", ScrollTrigger.update);
     const ticker = (time: number) => {
@@ -363,6 +615,18 @@ const App = () => {
 
     return () => {
       window.cancelAnimationFrame(parallaxRaf);
+      if (rafId) window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
+      try {
+        resourceObserver?.disconnect();
+      } catch (err) {
+        void err;
+      }
+      try {
+        longTaskObserver?.disconnect();
+      } catch (err) {
+        void err;
+      }
       lenis.off("scroll", onLenisScroll);
       lenis.off("scroll", ScrollTrigger.update);
       gsap.ticker.remove(ticker);
@@ -386,7 +650,44 @@ const App = () => {
             />
             <BackgroundAndScrollEffects enable3d={!isMobile} lenisRef={lenisRef} />
             <ScrollAnimator isMobile={isMobile} />
-            <AnimatedRoutes />
+            {PERF_DEBUG ? (
+              <Profiler
+                id="routes"
+                onRender={(id, phase, actualDuration, baseDuration, startTime, commitTime) => {
+                  // #region debug-point E:react-profiler
+                  try {
+                    fetch(DEBUG_SERVER_URL, {
+                      method: "POST",
+                      mode: "no-cors",
+                      headers: { "Content-Type": "text/plain" },
+                      body: JSON.stringify({
+                        sessionId: DEBUG_SESSION_ID,
+                        runId: DEBUG_RUN_ID,
+                        hypothesisId: "E",
+                        location: "App.tsx:Profiler",
+                        msg: "[DEBUG] React Profiler",
+                        data: {
+                          id,
+                          phase,
+                          actualDurationMs: Number(actualDuration.toFixed(2)),
+                          baseDurationMs: Number(baseDuration.toFixed(2)),
+                          startTimeMs: Number(startTime.toFixed(2)),
+                          commitTimeMs: Number(commitTime.toFixed(2)),
+                        },
+                        ts: Date.now(),
+                      }),
+                    }).catch(() => {});
+                  } catch (err) {
+                    void err;
+                  }
+                  // #endregion
+                }}
+              >
+                <AnimatedRoutes />
+              </Profiler>
+            ) : (
+              <AnimatedRoutes />
+            )}
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>

@@ -11,6 +11,12 @@ type HeroCanvasProps = {
   active: boolean;
 };
 
+const PERF_DEBUG =
+  import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("perf=1");
+const DEBUG_SERVER_URL = "http://127.0.0.1:7777/event";
+const DEBUG_SESSION_ID = "scroll-lag-60fps";
+const DEBUG_RUN_ID = "post-fix-2";
+
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 function RoundedPlaneGeometry({ args }: { args: [number, number, number] }) {
@@ -49,8 +55,10 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
   const particlesNearRef = useRef<THREE.Points>(null);
   const particlesFarRef = useRef<THREE.Points>(null);
   const dummyRef = useRef<THREE.Object3D>(new THREE.Object3D());
-  const { viewport, pointer, camera } = useThree();
+  const { viewport, pointer, camera, gl } = useThree();
   const heavyAccRef = useRef(0);
+  const perfRef = useRef({ lastSend: 0, sum: 0, n: 0, longFrames: 0, maxDt: 0 });
+  const heavyTickRef = useRef(0);
 
   const quality = useMemo(() => {
     const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null;
@@ -70,7 +78,7 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
   }, [viewport.width, viewport.height]);
 
   const nodeData = useMemo(() => {
-    const nodeCount = Math.max(10, Math.round((isMobile ? 14 : 34) * quality));
+    const nodeCount = Math.max(8, Math.round((isMobile ? 12 : 22) * quality));
     const maxDist = Math.max(0.85, dims.w * 0.34);
     const positions: THREE.Vector3[] = [];
     const seeds: number[] = [];
@@ -149,7 +157,7 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
   }, [dims.h, dims.w, dims.zFar, dims.zNear, isMobile, quality]);
 
   const particlesNear = useMemo(() => {
-    const count = Math.max(16, Math.round((isMobile ? 26 : 70) * quality));
+    const count = Math.max(12, Math.round((isMobile ? 18 : 40) * quality));
     const pos = new Float32Array(count * 3);
     const seed = new Float32Array(count);
     for (let i = 0; i < count; i++) {
@@ -163,7 +171,7 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
   }, [dims.h, dims.w, isMobile, quality]);
 
   const particlesFar = useMemo(() => {
-    const count = Math.max(22, Math.round((isMobile ? 34 : 90) * quality));
+    const count = Math.max(16, Math.round((isMobile ? 22 : 52) * quality));
     const pos = new Float32Array(count * 3);
     const seed = new Float32Array(count);
     for (let i = 0; i < count; i++) {
@@ -242,13 +250,75 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
     const popEased = easeOutCubic(pop);
     const floatY = Math.sin(t * 0.6) * 0.04;
     const sp = typeof scrollProgress === "number" ? scrollProgress : scrollProgress.get();
+    const scrollFast = window.__scrollFast === true;
+
+    // #region debug-point B:three-frame-cost
+    if (PERF_DEBUG) {
+      const now = performance.now();
+      const p = perfRef.current;
+      p.sum += delta * 1000;
+      p.n += 1;
+      const dtMs = delta * 1000;
+      if (dtMs > 24) p.longFrames += 1;
+      if (dtMs > p.maxDt) p.maxDt = dtMs;
+      if (!p.lastSend) p.lastSend = now;
+      if (now - p.lastSend > 2000) {
+        const avg = p.n ? p.sum / p.n : 16.67;
+        const fps = avg > 0 ? Math.round(1000 / avg) : 0;
+        try {
+          fetch(DEBUG_SERVER_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+              sessionId: DEBUG_SESSION_ID,
+              runId: DEBUG_RUN_ID,
+              hypothesisId: "B",
+              location: "HeroCanvas.tsx:useFrame",
+              msg: "[DEBUG] Three.js frame sample",
+              data: {
+                fps,
+                avgDtMs: Number(avg.toFixed(2)),
+                maxDtMs: Number(p.maxDt.toFixed(2)),
+                longFrames: p.longFrames,
+                isMobile,
+                dpr: gl.getPixelRatio?.() ?? null,
+                calls: gl.info?.render?.calls ?? null,
+                triangles: gl.info?.render?.triangles ?? null,
+                points: gl.info?.render?.points ?? null,
+                lines: gl.info?.render?.lines ?? null,
+                geometries: gl.info?.memory?.geometries ?? null,
+                textures: gl.info?.memory?.textures ?? null,
+                nodeCount: nodeData.nodeCount,
+                edges: nodeData.edges.length,
+                particlesNear: particlesNear.count,
+                particlesFar: particlesFar.count,
+                pulses: nodeData.pulseEdges.length,
+                scrollProgress: Number(sp.toFixed(3)),
+              },
+              ts: Date.now(),
+            }),
+          }).catch(() => {});
+        } catch (err) {
+          void err;
+        }
+        p.sum = 0;
+        p.n = 0;
+        p.longFrames = 0;
+        p.maxDt = 0;
+        p.lastSend = now;
+      }
+    }
+    // #endregion
 
     if (rootRef.current) {
       const targetRotX = pointer.y * 0.08;
       const targetRotY = pointer.x * 0.12;
       rootRef.current.rotation.x = THREE.MathUtils.damp(rootRef.current.rotation.x, targetRotX, 6, delta);
       rootRef.current.rotation.y = THREE.MathUtils.damp(rootRef.current.rotation.y, targetRotY, 6, delta);
+      rootRef.current.rotation.z = THREE.MathUtils.damp(rootRef.current.rotation.z, (sp - 0.5) * 0.06 + pointer.x * 0.02, 6, delta);
       rootRef.current.position.y = THREE.MathUtils.damp(rootRef.current.position.y, floatY - sp * (isMobile ? 0.38 : 0.62), 6, delta);
+      rootRef.current.position.z = THREE.MathUtils.damp(rootRef.current.position.z, (sp - 0.5) * 0.22, 6, delta);
       const baseScale = THREE.MathUtils.lerp(1.1, 1.0, popEased);
       rootRef.current.scale.set(baseScale, baseScale, 1);
     }
@@ -260,13 +330,14 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
       lightRef.current.position.y = THREE.MathUtils.damp(lightRef.current.position.y, ly + 1.2, 8, delta);
     }
 
+    const depth = sp - 0.5;
     const targetCamX = pointer.x * 0.18 + Math.sin(t * 0.12) * 0.08;
-    const targetCamY = pointer.y * 0.12 + Math.sin(t * 0.1) * 0.05 + sp * 0.14;
-    const targetCamZ = 3.6 + sp * 0.9;
+    const targetCamY = pointer.y * 0.12 + Math.sin(t * 0.1) * 0.05 + depth * 0.22;
+    const targetCamZ = 3.55 + sp * 0.75;
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetCamX, 3.5, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetCamY, 3.5, delta);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, targetCamZ, 3.5, delta);
-    camera.lookAt(0.2, 0, 0);
+    camera.lookAt(0.2, depth * 0.12, 0);
 
     const baseLineOpacity = isLight ? 0.1 : 0.14;
     const peakLineOpacity = isLight ? 0.32 : 0.38;
@@ -275,12 +346,13 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
     pulseMaterial.opacity = THREE.MathUtils.damp(pulseMaterial.opacity, THREE.MathUtils.lerp(basePulseOpacity, basePulseOpacity + 0.18, sp), 6, delta);
 
     heavyAccRef.current += delta;
-    const baseHeavyInterval = isMobile ? 1 / 22 : 1 / 28;
+    const baseHeavyInterval = scrollFast ? (isMobile ? 1 / 12 : 1 / 16) : isMobile ? 1 / 18 : 1 / 24;
     const heavyInterval = Math.max(baseHeavyInterval, delta * 1.25);
     if (heavyAccRef.current < heavyInterval) return;
     heavyAccRef.current = 0;
+    heavyTickRef.current += 1;
 
-    if (nodeMeshRef.current) {
+    if (!scrollFast && nodeMeshRef.current) {
       const dummy = dummyRef.current;
       for (let i = 0; i < nodeData.nodeCount; i++) {
         const p = nodeData.positions[i];
@@ -295,7 +367,7 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
       nodeMeshRef.current.instanceMatrix.needsUpdate = true;
     }
 
-    if (pulsePointsRef.current) {
+    if (!scrollFast && pulsePointsRef.current) {
       const geom = pulsePointsRef.current.geometry as THREE.BufferGeometry;
       const attr = geom.getAttribute("position") as THREE.BufferAttribute;
       for (let i = 0; i < nodeData.pulseEdges.length; i++) {
@@ -308,7 +380,12 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
         const by = nodeData.linePositions[base + 4];
         const bz = nodeData.linePositions[base + 5];
         const tt = (t * pulse.speed + pulse.phase) % 1;
-        attr.setXYZ(i, THREE.MathUtils.lerp(ax, bx, tt), THREE.MathUtils.lerp(ay, by, tt), THREE.MathUtils.lerp(az, bz, tt));
+        attr.setXYZ(
+          i,
+          THREE.MathUtils.lerp(ax, bx, tt),
+          THREE.MathUtils.lerp(ay, by, tt),
+          THREE.MathUtils.lerp(az, bz, tt) + depth * 0.08,
+        );
       }
       attr.needsUpdate = true;
     }
@@ -319,6 +396,7 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
       amp: number,
       speed: number,
       scrollAmp: number,
+      zAmp: number,
     ) => {
       if (!pts) return;
       const geom = pts.geometry as THREE.BufferGeometry;
@@ -331,13 +409,17 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
         const s = data.seed[i];
         const dy = Math.sin(t * speed + s) * amp;
         const dx = Math.cos(t * (speed * 0.7) + s) * (amp * 0.6);
-        attr.setXYZ(i, baseX + dx, baseY + dy - sp * scrollAmp, baseZ);
+        attr.setXYZ(i, baseX + dx, baseY + dy - sp * scrollAmp, baseZ + depth * zAmp);
       }
       attr.needsUpdate = true;
     };
 
-    updateParticles(particlesNearRef.current, particlesNear, 0.04, 0.22, isMobile ? 0.18 : 0.28);
-    updateParticles(particlesFarRef.current, particlesFar, 0.07, 0.12, isMobile ? 0.12 : 0.22);
+    if (!scrollFast) {
+      updateParticles(particlesNearRef.current, particlesNear, 0.035, 0.2, isMobile ? 0.16 : 0.24, 0.14);
+      if (heavyTickRef.current % 2 === 0) {
+        updateParticles(particlesFarRef.current, particlesFar, 0.055, 0.11, isMobile ? 0.1 : 0.18, 0.22);
+      }
+    }
   });
 
   return (
@@ -404,17 +486,11 @@ function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
               <mesh material={cardMaterial} position={[0.85, 0.25, 0.4]} rotation={[0, -0.45, 0.05]}>
                 <RoundedPlaneGeometry args={[1.9, 1.2, 0.12]} />
               </mesh>
-              <mesh material={emissiveMaterial} position={[0.85, 0.25, 0.41]} rotation={[0, -0.45, 0.05]}>
-                <RoundedPlaneGeometry args={[1.92, 1.22, 0.13]} />
-              </mesh>
             </Float>
 
             <Float speed={0.9} rotationIntensity={0.14} floatIntensity={0.2}>
               <mesh material={cardMaterial} position={[-0.95, -0.1, 0.15]} rotation={[0, 0.5, -0.04]}>
                 <RoundedPlaneGeometry args={[1.6, 1.05, 0.12]} />
-              </mesh>
-              <mesh material={emissiveMaterial} position={[-0.95, -0.1, 0.16]} rotation={[0, 0.5, -0.04]}>
-                <RoundedPlaneGeometry args={[1.62, 1.07, 0.13]} />
               </mesh>
             </Float>
 
