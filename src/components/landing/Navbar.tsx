@@ -3,6 +3,7 @@ import { Logo } from "@/components/Logo";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { LogOut, User as UserIcon } from "lucide-react";
+import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const Navbar = () => {
   const [userName, setUserName] = useState<string | null>(null);
@@ -49,6 +50,9 @@ export const Navbar = () => {
     localStorage.removeItem("user_name");
     localStorage.removeItem("user_email");
     setUserName(null);
+    if (supabaseConfigured) {
+      void supabase.auth.signOut();
+    }
     navigate("/");
   };
 
