@@ -21,7 +21,7 @@ const SipCalculatorPage = () => {
 
   return (
     <div data-scroll="section" className="min-h-screen">
-      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
+      <header className="border-b border-white/10 bg-background/50">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white">
@@ -38,7 +38,7 @@ const SipCalculatorPage = () => {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
           data-scroll="inner"
-          className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:p-10"
+          className="mx-auto max-w-6xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated lg:p-10"
         >
           <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
             <section>

@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
 import { ArrowRight, CircleHelp, Facebook, Instagram, Linkedin, ShieldCheck, Twitter, Youtube, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export const Footer = () => (
   <footer data-scroll="section" data-exit-opacity="0.95" className="relative overflow-hidden border-t border-border/60 bg-background py-12">
@@ -17,14 +17,45 @@ export const Footer = () => (
               <Mail className="h-4 w-4" />
               <a href="mailto:kasabesiddhi@gmail.com">kasabesiddhi@gmail.com</a>
             </div>
-            <Button asChild variant="outline" size="sm" className="border-white/20 bg-white/10 text-xs text-white hover:bg-white/15 hover:text-white">
-              <Link to="/faqs">Open FAQs Page</Link>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-white/20 bg-white/10 text-xs text-white hover:bg-white/15 hover:text-white"
+            >
+              <Link to="/faq">FAQs</Link>
             </Button>
           </div>
           
-          <FooterList title="Learn" items={["What is SIP?", "How it Works", "SIP Calculator", "Investment Guide", "Blog"]} />
-          <FooterList title="Resources" items={["Calculators", "Market Updates", "Videos", "Glossary", "Help Center"]} />
-          <FooterList title="Company" items={["About Us", "Contact Us", "Privacy Policy", "Terms & Conditions"]} />
+          <FooterList
+            title="Learn"
+            items={[
+              { label: "What is SIP?", to: "/learn#sip" },
+              { label: "How it Works", to: "/#how" },
+              { label: "SIP Calculator", to: "/sip-calculator" },
+              { label: "Investment Guide", to: "/learn#guide" },
+              { label: "Blog", to: "/learn#blog" },
+            ]}
+          />
+          <FooterList
+            title="Resources"
+            items={[
+              { label: "Calculators", to: "/calculators" },
+              { label: "Market Updates", to: "/ai-insights" },
+              { label: "Videos", to: "/learn#videos" },
+              { label: "Glossary", to: "/learn#glossary" },
+              { label: "Help Center", to: "/faq" },
+            ]}
+          />
+          <FooterList
+            title="Company"
+            items={[
+              { label: "About Us", to: "/about" },
+              { label: "Contact Us", to: "/contact" },
+              { label: "Privacy Policy", to: "/about#privacy" },
+              { label: "Terms & Conditions", to: "/about#terms" },
+            ]}
+          />
           
           <div className="space-y-4">
             <p className="text-sm font-semibold uppercase tracking-wider text-white/60">Stay Updated</p>
@@ -34,7 +65,13 @@ export const Footer = () => (
                 placeholder="Enter your email"
                 className="h-10 border-white/10 bg-white/10 text-sm text-white placeholder:text-white/40 focus:border-primary/50"
               />
-              <Button size="icon" className="h-10 w-10 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button
+                size="icon"
+                onClick={() => {
+                  window.location.href = "mailto:kasabesiddhi@gmail.com?subject=Investify%20newsletter%20signup";
+                }}
+                className="h-10 w-10 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -60,13 +97,15 @@ export const Footer = () => (
   </footer>
 );
 
-const FooterList = ({ title, items }: { title: string; items: string[] }) => (
+const FooterList = ({ title, items }: { title: string; items: Array<{ label: string; to: string }> }) => (
   <div className="space-y-4">
     <p className="text-sm font-semibold uppercase tracking-wider text-white/60">{title}</p>
     <ul className="space-y-3">
       {items.map((item) => (
-        <li key={item}>
-          <a href="#" className="text-sm text-white/70 hover:text-white transition-colors">{item}</a>
+        <li key={item.label}>
+          <Link to={item.to} className="text-sm text-white/70 hover:text-white transition-colors">
+            {item.label}
+          </Link>
         </li>
       ))}
     </ul>

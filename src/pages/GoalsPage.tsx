@@ -46,7 +46,7 @@ const featuredGoals = [
 const GoalsPage = () => {
   return (
     <div data-scroll="section" className="min-h-screen">
-      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
+      <header className="border-b border-white/10 bg-background/50">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white">
@@ -63,7 +63,7 @@ const GoalsPage = () => {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.8, ease: [0.2, 0.8, 0.2, 1] }}
           data-scroll="inner"
-          className="grid gap-8 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated backdrop-blur-xl lg:grid-cols-[1.1fr_0.9fr] lg:p-10"
+          className="grid gap-8 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-elevated lg:grid-cols-[1.1fr_0.9fr] lg:p-10"
         >
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/80">
@@ -89,11 +89,11 @@ const GoalsPage = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-6">
             <p className="text-sm font-semibold uppercase tracking-wider text-white/80">Planning Ads</p>
             <div className="mt-6 grid gap-4">
               {featuredGoals.slice(0, 2).map((goal) => (
-                <div key={goal.title} className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-card backdrop-blur-xl">
+                <div key={goal.title} className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-card">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-emerald-200 border border-white/10">
                       <goal.icon className="h-5 w-5" />
@@ -119,7 +119,7 @@ const GoalsPage = () => {
           className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4"
         >
           {featuredGoals.map((goal) => (
-            <article key={goal.title} className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-card backdrop-blur-xl transition-transform hover:-translate-y-1 hover:shadow-elevated">
+            <article key={goal.title} className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-card transition-transform hover:-translate-y-1 hover:shadow-elevated">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-violet-200">
                 <goal.icon className="h-5 w-5" />
               </div>

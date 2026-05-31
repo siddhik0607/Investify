@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -12,9 +12,12 @@ import { motion } from "framer-motion";
 
 const NewGoal = () => {
   const navigate = useNavigate();
-  const [goalName, setGoalName] = useState("Dream Home");
-  const [targetAmount, setTargetAmount] = useState(800000);
-  const [years, setYears] = useState(4);
+  const location = useLocation();
+  const template = (location.state as { template?: { goalName?: string; targetAmount?: number; years?: number } } | null)
+    ?.template;
+  const [goalName, setGoalName] = useState(template?.goalName || "Dream Home");
+  const [targetAmount, setTargetAmount] = useState(template?.targetAmount ?? 800000);
+  const [years, setYears] = useState(template?.years ?? 4);
   const [annualReturn, setAnnualReturn] = useState(12);
   const [name, setName] = useState(() => localStorage.getItem("user_name") || "");
   const [email, setEmail] = useState(() => localStorage.getItem("user_email") || "");
@@ -102,7 +105,7 @@ const NewGoal = () => {
 
   return (
     <div data-scroll="section" className="min-h-screen">
-      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
+      <header className="border-b border-white/10 bg-background/50">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white">

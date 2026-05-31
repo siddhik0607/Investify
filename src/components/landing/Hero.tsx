@@ -3,7 +3,7 @@ import { ArrowRight, ShieldCheck, TrendingUp, Sparkles, Zap } from "lucide-react
 import { Link } from "react-router-dom";
 import { HowItWorksDialog } from "@/components/landing/HowItWorksDialog";
 import { forwardRef, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 
@@ -28,6 +28,8 @@ export const Hero = () => {
     target: sectionRef,
     offset: ["start start", "end start"],
   });
+
+  const heroInView = useInView(sectionRef, { amount: 0.15 });
 
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -140]);
   const glowY = useTransform(scrollYProgress, [0, 1], [0, -110]);
@@ -68,6 +70,7 @@ export const Hero = () => {
 
   return (
     <section
+      id="top"
       ref={sectionRef}
       onPointerMove={onPointerMove}
       data-scroll="section"
@@ -76,7 +79,7 @@ export const Hero = () => {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <motion.div style={{ y: parallaxY }} className="absolute inset-0">
           <Suspense fallback={null}>
-            <HeroCanvas scrollProgress={scrollYProgress} isMobile={isMobile} theme={themeMode} />
+            <HeroCanvas scrollProgress={scrollYProgress} isMobile={isMobile} theme={themeMode} active={heroInView} />
           </Suspense>
         </motion.div>
 
@@ -117,11 +120,11 @@ export const Hero = () => {
           <motion.div style={{ y: ctaY, opacity: ctaOpacity }} className="mt-8 flex flex-col gap-3.5 sm:flex-row">
             <MagneticButton>
               <Button
-                asChild
                 size="lg"
                 className="h-12 px-7 bg-gradient-to-r from-indigo-500 to-violet-500 shadow-elevated hover:opacity-95 text-base font-semibold"
+                asChild
               >
-                <Link to="/new-goal">
+                <Link to="/goal-planner">
                   Start planning free
                   <ArrowRight className="ml-2 h-4.5 w-4.5" />
                 </Link>
@@ -202,53 +205,52 @@ export const Hero = () => {
 
 const Stat = ({ label, value, suffix }: { label: string; value: number; suffix: string }) => {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [shown, setShown] = useState(false);
-  const [current, setCurrent] = useState(0);
+  const valueRef = useRef<HTMLSpanElement | null>(null);
+  const rafRef = useRef(0);
+  const startedRef = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    const format = (v: number) => (value >= 100 ? Math.round(v).toLocaleString() : v.toFixed(1));
+    if (valueRef.current) valueRef.current.textContent = format(0);
+
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setShown(true);
-        }
+        if (!entries.some((e) => e.isIntersecting)) return;
+        if (startedRef.current) return;
+        startedRef.current = true;
+        io.disconnect();
+
+        const start = performance.now();
+        const duration = 900;
+        const from = 0;
+        const to = value;
+        const tick = (now: number) => {
+          const t = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - t, 3);
+          const v = from + (to - from) * eased;
+          if (valueRef.current) valueRef.current.textContent = format(v);
+          if (t < 1) rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
       },
       { threshold: 0.35 },
     );
+
     io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!shown) return;
-    const start = performance.now();
-    const duration = 900;
-    const from = 0;
-    const to = value;
-
-    let raf = 0;
-    const tick = (now: number) => {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setCurrent(from + (to - from) * eased);
-      if (t < 1) raf = requestAnimationFrame(tick);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(rafRef.current);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [shown, value]);
-
-  const formatted = value >= 100 ? Math.round(current).toLocaleString() : current.toFixed(1);
+  }, [value]);
 
   return (
-    <div
-      ref={ref}
-      className="rounded-2xl border border-border/60 bg-background/30 px-4 py-3 backdrop-blur-xl shadow-elevated"
-    >
+    <div ref={ref} className="rounded-2xl border border-border/60 bg-background/30 px-4 py-3 shadow-elevated">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
       <p className="mt-1 text-xl font-extrabold text-foreground">
-        {formatted}
-        {suffix}
+        <span ref={valueRef} />{suffix}
       </p>
     </div>
   );
@@ -257,7 +259,7 @@ const Stat = ({ label, value, suffix }: { label: string; value: number; suffix: 
 const FloatingCard = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   return (
     <motion.div
-      className={`group relative rounded-3xl border border-border/60 bg-background/30 p-5 backdrop-blur-xl shadow-card ${className || ""}`}
+      className={`group relative rounded-3xl border border-border/60 bg-background/30 p-5 shadow-card ${className || ""}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
@@ -324,7 +326,7 @@ const GrowthChart = () => {
   const path =
     "M2 42 C 18 38, 26 36, 36 30 C 46 24, 54 22, 62 18 C 72 13, 84 10, 98 6";
   return (
-    <div className="rounded-2xl border border-border/60 bg-background/30 p-4 backdrop-blur-xl">
+    <div className="rounded-2xl border border-border/60 bg-background/30 p-4">
       <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>Projected growth</span>
         <span className="font-semibold text-emerald-200">+₹2.1L returns</span>

@@ -73,7 +73,7 @@ export const HowItWorksDialog = ({ children }: HowItWorksDialogProps) => {
         </div>
 
         {/* Formula card */}
-        <div className="mt-4 rounded-2xl border border-border/60 bg-background/30 p-4 backdrop-blur-xl">
+        <div className="mt-4 rounded-2xl border border-border/60 bg-background/30 p-4">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">The math behind it</p>
           <p className="mt-2 font-mono text-sm">
             FV = P × [((1 + r)<sup>n</sup> − 1) / r] × (1 + r)
@@ -85,7 +85,7 @@ export const HowItWorksDialog = ({ children }: HowItWorksDialogProps) => {
         </div>
 
         {/* Mini growth visualization */}
-        <div className="mt-2 rounded-2xl border border-border/60 bg-background/30 p-4 backdrop-blur-xl">
+        <div className="mt-2 rounded-2xl border border-border/60 bg-background/30 p-4">
           <div className="mb-2 flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Example: ₹8L in 4 years @ 12%</span>
             <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ const FlowStep = ({
   tone: keyof typeof toneStyles;
   className?: string;
 }) => (
-  <div className={`relative rounded-2xl border border-border/60 bg-background/30 p-4 shadow-card backdrop-blur-xl ${className || ""}`}>
+  <div className={`relative rounded-2xl border border-border/60 bg-background/30 p-4 shadow-card ${className || ""}`}>
     <div className="absolute -top-2 left-4 rounded-full bg-background px-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
       Step {n}
     </div>

@@ -32,7 +32,7 @@ const HelpfulNudgesPage = () => {
 
   return (
     <div data-scroll="section" className="min-h-screen">
-      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl">
+      <header className="border-b border-white/10 bg-background/50">
         <div className="container flex h-16 items-center justify-between px-4">
           <Logo />
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white">

@@ -1,11 +1,25 @@
 import { Canvas } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { useTheme } from "next-themes";
 
 export const PremiumBackground = ({ enable3d }: { enable3d: boolean }) => {
   const { resolvedTheme } = useTheme();
   const isLight = resolvedTheme === "light";
+  const { sparkleCount, maxDpr, sparkleSpeed, sparkleSize } = useMemo(() => {
+    const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null;
+    const cores = navigator.hardwareConcurrency ?? null;
+    const lowEnd =
+      (typeof mem === "number" && mem > 0 && mem <= 4) || (typeof cores === "number" && cores > 0 && cores <= 4);
+    const highEnd =
+      (typeof mem === "number" && mem >= 12) || (typeof cores === "number" && cores >= 12);
+    return {
+      sparkleCount: lowEnd ? 36 : highEnd ? 72 : 54,
+      maxDpr: lowEnd ? 1.1 : highEnd ? 1.35 : 1.25,
+      sparkleSpeed: lowEnd ? 0.18 : 0.24,
+      sparkleSize: lowEnd ? 1.0 : 1.15,
+    };
+  }, []);
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
@@ -29,17 +43,17 @@ export const PremiumBackground = ({ enable3d }: { enable3d: boolean }) => {
       {enable3d && (
         <div className="absolute inset-0 opacity-70">
           <Canvas
-            dpr={[1, 1.5]}
-            gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+            dpr={[1, maxDpr]}
+            gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
             camera={{ position: [0, 0, 6], fov: 45 }}
           >
             <Suspense fallback={null}>
               <ambientLight intensity={0.55} />
               <Sparkles
-                count={120}
+                count={sparkleCount}
                 scale={[12, 8, 10]}
-                size={1.2}
-                speed={0.28}
+                size={sparkleSize}
+                speed={sparkleSpeed}
                 opacity={isLight ? 0.22 : 0.45}
                 color={isLight ? "#4F46E5" : "#A5B4FC"}
               />

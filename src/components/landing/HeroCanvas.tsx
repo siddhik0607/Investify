@@ -8,6 +8,7 @@ type HeroCanvasProps = {
   scrollProgress: number | MotionValue<number>;
   isMobile: boolean;
   theme: "light" | "dark";
+  active: boolean;
 };
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -31,7 +32,7 @@ function RoundedPlaneGeometry({ args }: { args: [number, number, number] }) {
   }, [w, h, r]);
 
   const geometry = useMemo(() => {
-    const g = new THREE.ShapeGeometry(shape, 24);
+    const g = new THREE.ShapeGeometry(shape, 14);
     g.computeVertexNormals();
     return g;
   }, [shape]);
@@ -39,7 +40,7 @@ function RoundedPlaneGeometry({ args }: { args: [number, number, number] }) {
   return <primitive object={geometry} attach="geometry" />;
 }
 
-function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
+function Scene({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) {
   const isLight = theme === "light";
   const rootRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
@@ -47,7 +48,17 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
   const pulsePointsRef = useRef<THREE.Points>(null);
   const particlesNearRef = useRef<THREE.Points>(null);
   const particlesFarRef = useRef<THREE.Points>(null);
+  const dummyRef = useRef<THREE.Object3D>(new THREE.Object3D());
   const { viewport, pointer, camera } = useThree();
+  const heavyAccRef = useRef(0);
+
+  const quality = useMemo(() => {
+    const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null;
+    const cores = navigator.hardwareConcurrency ?? null;
+    const lowEnd = (typeof mem === "number" && mem > 0 && mem <= 4) || (typeof cores === "number" && cores > 0 && cores <= 4);
+    if (isMobile) return lowEnd ? 0.45 : 0.55;
+    return lowEnd ? 0.65 : 1.0;
+  }, [isMobile]);
 
   const dims = useMemo(() => {
     return {
@@ -59,7 +70,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
   }, [viewport.width, viewport.height]);
 
   const nodeData = useMemo(() => {
-    const nodeCount = isMobile ? 26 : 54;
+    const nodeCount = Math.max(10, Math.round((isMobile ? 14 : 34) * quality));
     const maxDist = Math.max(0.85, dims.w * 0.34);
     const positions: THREE.Vector3[] = [];
     const seeds: number[] = [];
@@ -114,7 +125,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
       linePositions[o + 5] = pb.z;
     });
 
-    const pulseCount = isMobile ? 6 : 12;
+    const pulseCount = Math.max(3, Math.round((isMobile ? 4 : 8) * quality));
     const pulseEdges = new Array(pulseCount).fill(0).map(() => {
       const edgeIndex = Math.floor(Math.random() * Math.max(1, uniqueEdges.length));
       return {
@@ -135,10 +146,10 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
       pulseEdges,
       pulsePositions,
     };
-  }, [dims.h, dims.w, dims.zFar, dims.zNear, isMobile]);
+  }, [dims.h, dims.w, dims.zFar, dims.zNear, isMobile, quality]);
 
   const particlesNear = useMemo(() => {
-    const count = isMobile ? 90 : 180;
+    const count = Math.max(16, Math.round((isMobile ? 26 : 70) * quality));
     const pos = new Float32Array(count * 3);
     const seed = new Float32Array(count);
     for (let i = 0; i < count; i++) {
@@ -149,10 +160,10 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
       seed[i] = Math.random() * 1000;
     }
     return { count, pos, seed };
-  }, [dims.h, dims.w, isMobile]);
+  }, [dims.h, dims.w, isMobile, quality]);
 
   const particlesFar = useMemo(() => {
-    const count = isMobile ? 120 : 260;
+    const count = Math.max(22, Math.round((isMobile ? 34 : 90) * quality));
     const pos = new Float32Array(count * 3);
     const seed = new Float32Array(count);
     for (let i = 0; i < count; i++) {
@@ -163,7 +174,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
       seed[i] = Math.random() * 1000;
     }
     return { count, pos, seed };
-  }, [dims.h, dims.w, isMobile]);
+  }, [dims.h, dims.w, isMobile, quality]);
 
   const nodeMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
@@ -225,6 +236,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
   }, [isLight]);
 
   useFrame(({ clock }, delta) => {
+    if (!active) return;
     const t = clock.getElapsedTime();
     const pop = Math.min(t / 1.35, 1);
     const popEased = easeOutCubic(pop);
@@ -262,14 +274,20 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
     const basePulseOpacity = isLight ? 0.65 : 0.9;
     pulseMaterial.opacity = THREE.MathUtils.damp(pulseMaterial.opacity, THREE.MathUtils.lerp(basePulseOpacity, basePulseOpacity + 0.18, sp), 6, delta);
 
+    heavyAccRef.current += delta;
+    const baseHeavyInterval = isMobile ? 1 / 22 : 1 / 28;
+    const heavyInterval = Math.max(baseHeavyInterval, delta * 1.25);
+    if (heavyAccRef.current < heavyInterval) return;
+    heavyAccRef.current = 0;
+
     if (nodeMeshRef.current) {
-      const dummy = new THREE.Object3D();
+      const dummy = dummyRef.current;
       for (let i = 0; i < nodeData.nodeCount; i++) {
         const p = nodeData.positions[i];
         const s = nodeData.seeds[i];
         const breathe = 1 + Math.sin(t * 0.8 + s) * 0.08;
         dummy.position.set(p.x, p.y, p.z);
-        const scale = (isMobile ? 0.032 : 0.042) * breathe;
+        const scale = (isMobile ? 0.028 : 0.038) * breathe;
         dummy.scale.set(scale, scale, scale);
         dummy.updateMatrix();
         nodeMeshRef.current.setMatrixAt(i, dummy.matrix);
@@ -369,7 +387,7 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
         </lineSegments>
 
         <instancedMesh ref={nodeMeshRef} args={[undefined, undefined, nodeData.nodeCount]} frustumCulled={false}>
-          <sphereGeometry args={[1, 18, 18]} />
+          <sphereGeometry args={[1, 10, 10]} />
           <primitive object={nodeMaterial} attach="material" />
         </instancedMesh>
 
@@ -380,45 +398,60 @@ function Scene({ scrollProgress, isMobile, theme }: HeroCanvasProps) {
           <primitive object={pulseMaterial} attach="material" />
         </points>
 
-        <Float speed={1.2} rotationIntensity={0.18} floatIntensity={0.22}>
-          <mesh material={cardMaterial} position={[0.85, 0.25, 0.4]} rotation={[0, -0.45, 0.05]}>
-            <RoundedPlaneGeometry args={[1.9, 1.2, 0.12]} />
-          </mesh>
-          <mesh material={emissiveMaterial} position={[0.85, 0.25, 0.41]} rotation={[0, -0.45, 0.05]}>
-            <RoundedPlaneGeometry args={[1.92, 1.22, 0.13]} />
-          </mesh>
-        </Float>
+        {!isMobile && quality >= 0.8 ? (
+          <>
+            <Float speed={1.2} rotationIntensity={0.18} floatIntensity={0.22}>
+              <mesh material={cardMaterial} position={[0.85, 0.25, 0.4]} rotation={[0, -0.45, 0.05]}>
+                <RoundedPlaneGeometry args={[1.9, 1.2, 0.12]} />
+              </mesh>
+              <mesh material={emissiveMaterial} position={[0.85, 0.25, 0.41]} rotation={[0, -0.45, 0.05]}>
+                <RoundedPlaneGeometry args={[1.92, 1.22, 0.13]} />
+              </mesh>
+            </Float>
 
-        {!isMobile && (
-          <Float speed={0.9} rotationIntensity={0.14} floatIntensity={0.2}>
-            <mesh material={cardMaterial} position={[-0.95, -0.1, 0.15]} rotation={[0, 0.5, -0.04]}>
-              <RoundedPlaneGeometry args={[1.6, 1.05, 0.12]} />
-            </mesh>
-            <mesh material={emissiveMaterial} position={[-0.95, -0.1, 0.16]} rotation={[0, 0.5, -0.04]}>
-              <RoundedPlaneGeometry args={[1.62, 1.07, 0.13]} />
-            </mesh>
-          </Float>
+            <Float speed={0.9} rotationIntensity={0.14} floatIntensity={0.2}>
+              <mesh material={cardMaterial} position={[-0.95, -0.1, 0.15]} rotation={[0, 0.5, -0.04]}>
+                <RoundedPlaneGeometry args={[1.6, 1.05, 0.12]} />
+              </mesh>
+              <mesh material={emissiveMaterial} position={[-0.95, -0.1, 0.16]} rotation={[0, 0.5, -0.04]}>
+                <RoundedPlaneGeometry args={[1.62, 1.07, 0.13]} />
+              </mesh>
+            </Float>
+
+            <Float speed={1.1} rotationIntensity={0.12} floatIntensity={0.18}>
+              <mesh material={cardMaterial} position={[0.05, -0.65, 0.05]} rotation={[0, -0.15, 0.02]}>
+                <RoundedPlaneGeometry args={[2.1, 0.85, 0.12]} />
+              </mesh>
+            </Float>
+          </>
+        ) : (
+          <mesh material={cardMaterial} position={[0.65, 0.15, 0.3]} rotation={[0, -0.45, 0.05]}>
+            <RoundedPlaneGeometry args={[1.85, 1.15, 0.12]} />
+          </mesh>
         )}
-
-        <Float speed={1.1} rotationIntensity={0.12} floatIntensity={0.18}>
-          <mesh material={cardMaterial} position={[0.05, -0.65, 0.05]} rotation={[0, -0.15, 0.02]}>
-            <RoundedPlaneGeometry args={[2.1, 0.85, 0.12]} />
-          </mesh>
-        </Float>
       </group>
     </>
   );
 }
 
-export const HeroCanvas = ({ scrollProgress, isMobile, theme }: HeroCanvasProps) => {
+export const HeroCanvas = ({ scrollProgress, isMobile, theme, active }: HeroCanvasProps) => {
+  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null;
+  const cores = navigator.hardwareConcurrency ?? null;
+  const lowEnd = (typeof mem === "number" && mem > 0 && mem <= 4) || (typeof cores === "number" && cores > 0 && cores <= 4);
+  const highEnd =
+    !isMobile &&
+    !lowEnd &&
+    ((typeof mem === "number" && mem >= 12) || (typeof cores === "number" && cores >= 12));
+  const maxDpr = isMobile ? 1.0 : highEnd ? 1.5 : 1.25;
   return (
     <Canvas
-      dpr={[1, 1.5]}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      frameloop={active ? "always" : "demand"}
+      dpr={[1, maxDpr]}
+      gl={{ antialias: !isMobile && !lowEnd, alpha: true, powerPreference: "high-performance" }}
       camera={{ position: [0, 0, 3.6], fov: 45 }}
     >
       <Suspense fallback={null}>
-        <Scene scrollProgress={scrollProgress} isMobile={isMobile} theme={theme} />
+        <Scene scrollProgress={scrollProgress} isMobile={isMobile} theme={theme} active={active} />
       </Suspense>
     </Canvas>
   );

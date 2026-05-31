@@ -1,32 +1,32 @@
 import { Calculator, LineChart, Target, Bell, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { motion, useSpring } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const features = [
   {
     icon: Target,
     title: "Set real-life goals",
     desc: "Car, home, wedding, sabbatical — define what matters and when you want it.",
-    to: "/goals",
+    to: "/goal-planner",
   },
   {
     icon: Calculator,
     title: "Smart SIP calculator",
     desc: "We solve the math: exact monthly investment to hit your target on time.",
-    to: "/sip-calculator",
+    to: "/calculators",
   },
   {
     icon: LineChart,
     title: "Visualize growth",
     desc: "Clean charts compare what you invest vs. what your money becomes.",
-    to: "/visualize-growth",
+    to: "/portfolio",
   },
   {
     icon: Bell,
     title: "Helpful nudges",
     desc: "Stretch your duration, adjust returns — get plain-English suggestions.",
-    to: "/helpful-nudges",
+    to: "/ai-insights",
   },
 ];
 
@@ -72,16 +72,20 @@ const FeatureCard = ({
   to: string;
   icon: React.ReactNode;
 }) => {
-  const ref = useRef<HTMLAnchorElement | null>(null);
+  const ref = useRef<HTMLButtonElement | null>(null);
   const rotateX = useSpring(0, { stiffness: 180, damping: 18, mass: 0.4 });
   const rotateY = useSpring(0, { stiffness: 180, damping: 18, mass: 0.4 });
+  const navigate = useNavigate();
 
   return (
     <div data-card>
-      <Link
+      <button
         ref={ref}
-        to={to}
-        className="group block rounded-2xl border border-border/60 bg-background/30 shadow-card backdrop-blur-xl transition-colors hover:border-primary/30"
+        type="button"
+        onClick={() => {
+          navigate(to);
+        }}
+        className="group block w-full rounded-2xl border border-border/60 bg-background/30 text-left shadow-card transition-colors hover:border-primary/30"
       >
         <motion.div
           style={{ rotateX, rotateY, transformPerspective: 900 }}
@@ -110,12 +114,12 @@ const FeatureCard = ({
             <h3 className="text-base font-semibold text-foreground">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
             <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-              Open page
+              Explore
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </div>
           </div>
         </motion.div>
-      </Link>
+      </button>
     </div>
   );
 };

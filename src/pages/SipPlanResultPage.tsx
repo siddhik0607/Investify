@@ -45,7 +45,7 @@ const SipPlanResultPage = () => {
 
   return (
     <div data-scroll="section" className="min-h-screen pb-20">
-      <header className="border-b border-white/10 bg-background/50 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-white/10 bg-background/50 sticky top-0 z-50">
         <div className="container flex h-14 items-center justify-between px-4">
           <Logo />
           <Link to="/" className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">

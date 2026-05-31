@@ -23,6 +23,7 @@ import { buildGrowthSeries, calcMonthlySIP, formatInr } from "@/lib/finance";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const lifestyleAdjustments: Record<string, number> = {
   balanced: 1,
@@ -31,11 +32,11 @@ const lifestyleAdjustments: Record<string, number> = {
 };
 
 const popularGoals = [
-  { title: "Buy a Car", icon: Car, cost: 800000, route: "/goals" },
-  { title: "Buy a Home", icon: Home, cost: 5000000, route: "/goals" },
-  { title: "World Trip", icon: Plane, cost: 300000, route: "/goals" },
-  { title: "Gadget Upgrade", icon: Wallet, cost: 120000, route: "/goals" },
-  { title: "Emergency Fund", icon: PiggyBank, cost: 200000, route: "/goals" },
+  { title: "Buy a Car", icon: Car, cost: 800000 },
+  { title: "Buy a Home", icon: Home, cost: 5000000 },
+  { title: "World Trip", icon: Plane, cost: 300000 },
+  { title: "Gadget Upgrade", icon: Wallet, cost: 120000 },
+  { title: "Emergency Fund", icon: PiggyBank, cost: 200000 },
 ];
 
 const weekProgress = [
@@ -109,6 +110,29 @@ export const PlannerDashboard = () => {
   const [targetYears, setTargetYears] = useState(5);
   const [expectedReturn, setExpectedReturn] = useState(12);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
+  const [planData, setPlanData] = useState<{
+    userName: string;
+    userEmail: string;
+    selectedGoal: string;
+    adjustedTarget: number;
+    targetYears: number;
+    expectedReturn: number;
+    income: number;
+    lifestyle: "balanced" | "minimal" | "ambitious";
+    recommendedSip: number;
+  } | null>(null);
+
+  const go = (target: string) => {
+    const clean = target.replace("#", "").trim();
+    if (!clean) return;
+    if (clean === "features") navigate("/#features");
+    else if (clean === "portfolio") navigate("/portfolio");
+    else if (clean === "calculators") navigate("/calculators");
+    else if (clean === "ai-insights") navigate("/ai-insights");
+    else if (clean === "contact") navigate("/contact");
+    else navigate(`/#${clean}`);
+  };
 
   const adjustedTarget = useMemo(
     () => Math.round(targetAmount * lifestyleAdjustments[lifestyle]),
@@ -169,8 +193,8 @@ export const PlannerDashboard = () => {
       // Proceeding anyway
     } finally {
       setIsSubmitting(false);
-      // ALWAYS navigate to results page so user can see their plan
-      navigate("/sip-plan-result", { state: { planData } });
+      setPlanData(planData);
+      setPlanOpen(true);
     }
   };
   const growthSeries = useMemo(
@@ -190,7 +214,7 @@ export const PlannerDashboard = () => {
 
   return (
     <section
-      id="how"
+      id="goal-planner"
       data-scroll="section"
       className="relative overflow-hidden border-t border-border/60 bg-background py-16 md:py-20"
     >
@@ -207,9 +231,9 @@ export const PlannerDashboard = () => {
               <div>
                 <div className="mb-6 flex items-center justify-between">
                   <h3 className="text-xl font-bold text-foreground">Popular Goals</h3>
-                  <Link to="/goals" className="text-xs font-semibold text-primary hover:underline">
-                    View all goals
-                  </Link>
+                  <button type="button" onClick={() => go("features")} className="text-xs font-semibold text-primary hover:underline">
+                    View features
+                  </button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {popularGoals.map((goal) => (
@@ -319,6 +343,61 @@ export const PlannerDashboard = () => {
                     {isSubmitting ? "Saving Plan..." : "Show My Investment Plan"}
                   </Button>
                   <p className="mt-4 text-center text-[11px] font-medium text-muted-foreground">{customGoalSummary}</p>
+
+                  <Dialog open={planOpen} onOpenChange={setPlanOpen}>
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle>Your investment plan</DialogTitle>
+                      </DialogHeader>
+                      {planData ? (
+                        <div className="grid gap-6">
+                          <div className="grid gap-4 sm:grid-cols-3" data-stagger="cards">
+                            <div data-card className="rounded-2xl border border-border/60 bg-background/30 p-4">
+                              <p className="text-xs font-semibold text-muted-foreground">Goal</p>
+                              <p className="mt-2 text-base font-bold text-foreground">{planData.selectedGoal}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">{formatInr(planData.adjustedTarget)} target</p>
+                            </div>
+                            <div data-card className="rounded-2xl border border-primary/25 bg-primary-soft p-4">
+                              <p className="text-xs font-semibold text-primary">Monthly SIP</p>
+                              <p className="mt-2 text-2xl font-extrabold text-foreground">{formatInr(planData.recommendedSip)}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">for {planData.targetYears} years</p>
+                            </div>
+                            <div data-card className="rounded-2xl border border-secondary/25 bg-secondary-soft p-4">
+                              <p className="text-xs font-semibold text-secondary">Expected return</p>
+                              <p className="mt-2 text-2xl font-extrabold text-foreground">{planData.expectedReturn}%</p>
+                              <p className="mt-1 text-xs text-muted-foreground">market-linked</p>
+                            </div>
+                          </div>
+
+                          <div className="rounded-2xl border border-border bg-background p-5 shadow-card">
+                            <p className="text-sm font-semibold text-foreground">What to do next</p>
+                            <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+                              <div className="flex items-start gap-3">
+                                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-soft text-primary text-xs font-bold">1</span>
+                                <p>Start your first SIP before the 5th of next month, and keep it automated.</p>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-soft text-primary text-xs font-bold">2</span>
+                                <p>Review once every 12 months; increase SIP by 5–10% when income grows.</p>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-soft text-primary text-xs font-bold">3</span>
+                                <p>Use the calculators and portfolio section to validate assumptions calmly.</p>
+                              </div>
+                            </div>
+                            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                              <Button onClick={() => { setPlanOpen(false); go("portfolio"); }} variant="outline" className="bg-background">
+                                View portfolio section
+                              </Button>
+                              <Button onClick={() => { setPlanOpen(false); go("calculators"); }} className="bg-gradient-primary shadow-elevated hover:opacity-95">
+                                Open calculators
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
@@ -366,8 +445,8 @@ export const PlannerDashboard = () => {
                   </div>
                   <Progress value={affordabilityScore} className="h-2 bg-white/70" />
                 </div>
-                <Button asChild variant="outline" className="mt-6 h-10 w-full bg-card text-sm font-semibold">
-                  <Link to="/sip-calculator">Open calculator</Link>
+                <Button onClick={() => go("calculators")} variant="outline" className="mt-6 h-10 w-full bg-card text-sm font-semibold">
+                  Open calculator
                 </Button>
               </motion.div>
             </div>
@@ -449,8 +528,8 @@ export const PlannerDashboard = () => {
                   </p>
                   <p className="mt-1 text-[11px] font-medium text-muted-foreground">in {targetYears} years</p>
                 </motion.div>
-                <Button asChild className="h-12 w-full bg-gradient-primary text-sm font-bold shadow-card">
-                  <Link to="/visualize-growth">View Chart</Link>
+                <Button onClick={() => go("portfolio")} className="h-12 w-full bg-gradient-primary text-sm font-bold shadow-card">
+                  View Chart
                 </Button>
               </div>
             </div>
@@ -466,14 +545,15 @@ export const PlannerDashboard = () => {
               </p>
             </div>
             <Button asChild size="lg" className="h-14 bg-gradient-primary px-8 text-lg font-bold shadow-elevated">
-              <Link to="/new-goal">Get Started Free</Link>
+              <Link to="/signin">Get Started Free</Link>
             </Button>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {powerfulFeatures.map((feat) => (
-              <Link
+              <button
                 key={feat.title}
-                to={feat.to}
+                type="button"
+                onClick={() => navigate(feat.to)}
                 className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-elevated"
               >
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${feat.accent} transition-transform group-hover:scale-105`}>
@@ -485,7 +565,7 @@ export const PlannerDashboard = () => {
                   {feat.button}
                   <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -537,7 +617,7 @@ export const PlannerDashboard = () => {
                   </div>
                 </div>
                 <Button asChild variant="outline" className="h-10 w-full bg-card text-sm font-bold">
-                  <Link to="/track-progress">Track all goals</Link>
+                  <Link to="/dashboard">Open dashboard</Link>
                 </Button>
               </div>
             </div>
@@ -572,8 +652,8 @@ export const PlannerDashboard = () => {
                   Consider moving a small part of your luxury budget to your {selectedGoal.toLowerCase()} SIP today for faster results.
                 </p>
               </div>
-              <Button asChild variant="outline" className="mt-8 h-12 w-full bg-card text-base font-bold">
-                <Link to="/helpful-nudges">View all nudges</Link>
+              <Button onClick={() => go("ai-insights")} variant="outline" className="mt-8 h-12 w-full bg-card text-base font-bold">
+                View all insights
               </Button>
             </div>
           </CardShell>
