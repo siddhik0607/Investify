@@ -6,6 +6,22 @@
     <title>Investify — Goal-Based Investment Simulator</title>
     <meta name="description" content="Plan investments around real life goals. Calculate the monthly SIP needed to buy a car, a home, or fund any dream — with clean charts and progress tracking." />
     <meta name="author" content="Investify" />
+    <meta name="color-scheme" content="dark light" />
+
+    <style>
+      html, body { background: #050712; }
+    </style>
+
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (!t || t === "system") t = "dark";
+          if (t === "dark") document.documentElement.classList.add("dark");
+          else document.documentElement.classList.remove("dark");
+        } catch (e) {}
+      })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
