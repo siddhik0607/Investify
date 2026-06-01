@@ -544,9 +544,6 @@ export const PlannerDashboard = () => {
                 Unlock powerful features and personalized nudges to stay on track.
               </p>
             </div>
-            <Button asChild size="lg" className="h-14 bg-gradient-primary px-8 text-lg font-bold shadow-elevated">
-              <Link to="/signin">Get Started Free</Link>
-            </Button>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {powerfulFeatures.map((feat) => (
@@ -568,95 +565,6 @@ export const PlannerDashboard = () => {
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="grid gap-8 xl:grid-cols-2">
-          <CardShell title="4. Track & Celebrate" subtitle="Stay motivated with real-time tracking and milestones.">
-            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-2xl border border-border bg-background p-6">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-foreground">Goal Progress</p>
-                  <p className="text-[10px] font-bold text-primary">{progressPercent}%</p>
-                </div>
-                <Progress value={progressPercent} className="mt-3 h-2 bg-muted/30" />
-                <div className="mt-8 grid grid-cols-7 gap-2">
-                  {weekProgress.map((day, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2">
-                      <div className="relative h-20 w-full rounded-full bg-muted/20">
-                        <div
-                          className="absolute bottom-0 w-full rounded-full bg-gradient-to-t from-primary to-primary-light transition-all"
-                          style={{ height: `${day.percent}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] font-bold text-muted-foreground">{day.day}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col justify-between space-y-6 rounded-2xl border border-secondary/20 bg-secondary-soft p-6">
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <Trophy className="h-5 w-5 text-secondary" />
-                    <p className="text-base font-bold text-foreground">Milestones</p>
-                  </div>
-                  <div className="mt-6 space-y-4">
-                    {milestoneItems.map((item, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div
-                          className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                            item.done ? "bg-primary text-primary-foreground" : "border-2 border-muted/30 text-muted/30"
-                          }`}
-                        >
-                          {item.done && <Check className="h-3 w-3" />}
-                        </div>
-                        <span className={`text-xs font-bold ${item.done ? "text-foreground" : "text-muted-foreground"}`}>
-                          {item.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <Button asChild variant="outline" className="h-10 w-full bg-card text-sm font-bold">
-                  <Link to="/dashboard">Open dashboard</Link>
-                </Button>
-              </div>
-            </div>
-          </CardShell>
-
-          <CardShell title="5. Stay Motivated" subtitle="Daily nudges and tips to help you reach your financial peak.">
-            <div className="flex h-full flex-col justify-between rounded-2xl border border-border bg-background p-6">
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                    <Sparkles className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-base font-bold text-foreground">Goal: {selectedGoal}</p>
-                    <p className="text-xs font-medium text-muted-foreground">Keep it up, you are doing great!</p>
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-gradient-primary p-6 text-primary-foreground shadow-elevated">
-                  <p className="text-lg font-bold italic leading-relaxed">
-                    "The best time to plant a tree was 20 years ago. The second best time is now."
-                  </p>
-                  <p className="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-80">— Chinese Proverb</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <Target className="h-5 w-5 text-secondary" />
-                    <p className="text-sm font-bold text-foreground">Daily Nudge</p>
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">10:30 AM</span>
-                </div>
-                <p className="text-xs font-medium leading-relaxed text-muted-foreground">
-                  Consider moving a small part of your luxury budget to your {selectedGoal.toLowerCase()} SIP today for faster results.
-                </p>
-              </div>
-              <Button onClick={() => go("ai-insights")} variant="outline" className="mt-8 h-12 w-full bg-card text-base font-bold">
-                View all insights
-              </Button>
-            </div>
-          </CardShell>
         </div>
       </div>
     </section>

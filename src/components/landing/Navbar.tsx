@@ -85,7 +85,7 @@ export const Navbar = () => {
           <Link to="/portfolio" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">Portfolio</Link>
           <Link to="/calculators" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">Calculators</Link>
           <Link to="/ai-insights" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">AI insights</Link>
-          <Link to="/pricing" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">Pricing</Link>
+          <Link to="/pricing" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">Trust</Link>
           <Link to="/learn" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">Learn</Link>
           <Link to="/contact" className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">Contact</Link>
         </nav>

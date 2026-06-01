@@ -9,7 +9,7 @@ import { calcMonthlySIP, calculateFutureValue, formatInr } from "@/lib/finance";
 import { faqItems } from "@/lib/faqs";
 import * as RechartsPrimitive from "recharts";
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, ChevronRight, LineChart, PieChart, Quote, Sparkles, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, LineChart, Lock, PieChart, Quote, ShieldCheck, Sparkles, TrendingUp, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const allocation = [
@@ -458,63 +458,60 @@ export const AIInsightsSection = () => {
   );
 };
 
-const plans = [
+const trustPillars = [
   {
-    name: "Free",
-    price: "₹0",
-    desc: "Best for getting started with goals and SIP planning.",
+    title: "Secure by design",
+    desc: "Authentication and API access follow proven, production-grade patterns.",
     tone: "border-border bg-background/30",
-    features: ["Goal templates", "SIP calculator", "Growth visualization", "Basic progress tracking"],
-    cta: { label: "Start free", to: "/signin" },
+    icon: ShieldCheck,
+    points: ["Supabase Auth ready", "HTTPS by default", "No credentials stored in the browser"],
   },
   {
-    name: "Pro",
-    price: "₹299/mo",
-    desc: "For consistent planners who want more tracking and insights.",
+    title: "Privacy-first data",
+    desc: "We only collect what’s needed to plan goals and show progress.",
     tone: "border-primary/30 bg-primary-soft",
-    features: ["Everything in Free", "Advanced progress tracking", "Goal streaks & milestones", "Portfolio insights"],
-    cta: { label: "Go Pro", to: "/signin" },
+    icon: Lock,
+    points: ["Minimal fields", "Clear purpose", "Designed for least privilege"],
     highlight: true,
   },
   {
-    name: "Premium",
-    price: "₹799/mo",
-    desc: "For power users who want AI guidance and premium features.",
+    title: "Transparent planning",
+    desc: "Every number is grounded in inputs you can understand and edit.",
     tone: "border-secondary/30 bg-secondary-soft",
-    features: ["Everything in Pro", "AI Insights", "AI Financial Assistant", "Priority support"],
-    cta: { label: "Get Premium", to: "/signin" },
+    icon: LineChart,
+    points: ["Clear SIP math", "Editable assumptions", "Readable projections"],
   },
 ];
 
 export const PricingSection = () => (
   <section id="pricing" data-scroll="section" className="relative">
-    <div className="pointer-events-none absolute inset-0 -z-10 hidden md:block">
-      <div className="absolute left-24 top-28 h-[520px] w-[520px] rounded-full bg-primary/10 blur-2xl" />
-      <div className="absolute right-24 bottom-24 h-[520px] w-[520px] rounded-full bg-secondary/10 blur-2xl" />
-    </div>
-
     <div data-scroll="inner" className="container px-4 py-20 md:py-28">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Pricing</p>
-        <h2 className="mt-3 text-balance text-3xl font-bold sm:text-4xl">Plans that scale with your journey.</h2>
-        <p className="mt-3 text-sm text-muted-foreground">Premium cards, clear value, and simple comparisons.</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Trust</p>
+        <h2 className="mt-3 text-balance text-3xl font-bold sm:text-4xl">Built for security, privacy, and clarity.</h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          A planning experience that feels premium because it’s trustworthy — not because it’s noisy.
+        </p>
       </div>
 
       <div className="mt-14 grid gap-6 lg:grid-cols-3" data-stagger="cards">
-        {plans.map((p) => (
-          <div key={p.name} data-card className={`relative overflow-hidden rounded-3xl border p-6 shadow-card ${p.tone}`}>
-            {p.highlight && (
+        {trustPillars.map((p) => (
+          <div key={p.title} data-card className={`relative overflow-hidden rounded-3xl border p-6 shadow-card ${p.tone}`}>
+            {p.highlight ? (
               <div className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/30 px-3 py-1 text-xs font-semibold text-muted-foreground">
                 <Sparkles className="h-3.5 w-3.5 text-violet-200" />
-                Most popular
+                Core pillar
               </div>
-            )}
-            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{p.name}</p>
-            <p className="mt-3 text-4xl font-extrabold text-foreground">{p.price}</p>
-            <p className="mt-3 text-sm text-muted-foreground">{p.desc}</p>
+            ) : null}
+
+            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-background/30 text-primary">
+              <p.icon className="h-5 w-5" />
+            </div>
+            <p className="mt-5 text-lg font-bold text-foreground">{p.title}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{p.desc}</p>
 
             <div className="mt-6 space-y-3">
-              {p.features.map((f) => (
+              {p.points.map((f) => (
                 <div key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-background/50 border border-border/60">
                     <Check className="h-3.5 w-3.5 text-primary" />
@@ -523,19 +520,19 @@ export const PricingSection = () => (
                 </div>
               ))}
             </div>
-
-            <Button
-              asChild
-              className={`mt-8 w-full ${p.highlight ? "bg-gradient-primary shadow-elevated hover:opacity-95" : "bg-background/60 hover:bg-background/75"}`}
-              variant={p.highlight ? "default" : "outline"}
-            >
-              <Link to={p.cta.to}>
-                {p.cta.label}
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         ))}
+      </div>
+
+      <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-border bg-background p-6 text-center shadow-card">
+        <p className="text-sm font-semibold text-foreground">Want help setting up Supabase securely?</p>
+        <p className="mt-1 text-sm text-muted-foreground">We’ll guide you on environment variables and safe auth flows.</p>
+        <Button asChild className="mt-5 bg-gradient-primary shadow-elevated hover:opacity-95">
+          <Link to="/contact">
+            Contact support
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   </section>
